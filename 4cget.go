@@ -80,7 +80,7 @@ func main() {
 		
                [ github.com/SegoCode ]` + "\n")
 
-	fmt.Println("[*] DOWNLOAD STARTED (" + inputUrl + ")\n")
+	fmt.Println("[*] DOWNLOAD STARTED (" + inputUrl + ") [*] \n")
 
 	resp, _ := http.Get(inputUrl)
 	body, err := ioutil.ReadAll(resp.Body)
