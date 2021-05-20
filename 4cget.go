@@ -30,8 +30,8 @@ func downloadFile(wg *sync.WaitGroup, url string, fileName string, path string) 
 		fileName = strings.Replace(fileName, ".jpg", ".png", 1)
 		resp, _ = http.Get(url)
 		if resp.StatusCode == 404 {
-			url = strings.Replace(url, ".pgn", ".gif", 1)
-			fileName = strings.Replace(fileName, ".png", ".gif", 1)
+			url = strings.Replace(url, ".png", ".webm", 1)
+			fileName = strings.Replace(fileName, ".png", ".webm", 1)
 			resp, _ = http.Get(url)
 		}
 	}
@@ -58,7 +58,7 @@ func main() {
 
 	//Usage validation
 	if len(os.Args) <= 1 {
-		fmt.Println("[!] USAGE: 4goimg https://boards.4channel.org/w/thread/.../...")
+		fmt.Println("[!] USAGE: 4cget https://boards.4channel.org/w/thread/.../...")
 		os.Exit(1)
 	}
 
@@ -71,14 +71,12 @@ func main() {
 	}
 
 	fmt.Println(`
-  _  _                              
- | || |                           
- | || |_ __ _  ___  _ _ __ ___   __ _ 
- |__   _/ _' |/ _ \| | '_ ' _ \ / _' |
-    | || (_| | (_) | | | | | | | (_| |
-    |_| \__. |\___/|_|_| |_| |_|\__. |
-         __/ |                   __/ |
-        |___/                   |___/ 
+░░██╗██╗░█████╗░░██████╗░███████╗████████╗
+░██╔╝██║██╔══██╗██╔════╝░██╔════╝╚══██╔══╝
+██╔╝░██║██║░░╚═╝██║░░██╗░█████╗░░░░░██║░░░
+███████║██║░░██╗██║░░╚██╗██╔══╝░░░░░██║░░░
+╚════██║╚█████╔╝╚██████╔╝███████╗░░░██║░░░
+░░░░░╚═╝░╚════╝░░╚═════╝░╚══════╝░░░╚═╝░░░
 		
                [ github.com/SegoCode ]` + "\n")
 
