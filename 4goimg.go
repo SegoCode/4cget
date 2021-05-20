@@ -13,8 +13,8 @@ import (
 	"sync"
 )
 
-func findImages(htm string) []string {
-	imgs := imgRE.FindAllStringSubmatch(htm, -1)
+func findImages(html string) []string {
+	imgs := imgRE.FindAllStringSubmatch(html, -1)
 	out := make([]string, len(imgs))
 	for i := range out {
 		out[i] = imgs[i][1]
@@ -47,16 +47,18 @@ func downloadFile(wg *sync.WaitGroup, url string, fileName string) {
 	wg.Done()
 }
 
-var imgRE = regexp.MustCompile(`<img[^>]+\bsrc=["']([^"']+)["']`)
-var re = regexp.MustCompile("[0-9]+")
 
 func main() {
+	var imgRE = regexp.MustCompile(`<img[^>]+\bsrc=["']([^"']+)["']`)
+	var re = regexp.MustCompile("[0-9]+")
 	var wg sync.WaitGroup
 	var inputUrl string
+	var linkImg string
+	var nameImg string
 
 	//Usage validation
 	if len(os.Args) <= 1 {
-		fmt.Println("[!] USAGE: 4goimg http://example.com")
+		fmt.Println("[!] USAGE: 4goimg https://boards.4channel.org/w/thread/.../...")
 		os.Exit(1)
 	}
 
@@ -64,7 +66,7 @@ func main() {
 	inputUrl = os.Args[1]
 	_, errParse := url.ParseRequestURI(inputUrl)
 	if errParse != nil {
-		fmt.Println("[!] URL NOT VALID (Example: http://example.com)")
+		fmt.Println("[!] URL NOT VALID (Example: https://boards.4channel.org/w/thread/.../...)")
 		os.Exit(1)
 	}
 
@@ -82,24 +84,15 @@ func main() {
 
 	fmt.Println("[*] DOWNLOAD STARTED (" + inputUrl + ")\n")
 
-	resp, err := http.Get(inputUrl)
-	if err != nil {
-		log.Fatalln(err)
-	}
-
+	resp, _ := http.Get(inputUrl)
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		log.Fatalln(err)
+		fmt.Println("[!] CONNECTION ERROR")
 	}
 
-	sb := string(body)
-	var linkImg string
-	var nameImg string
-
-	for _, each := range findImages(sb) {
+	for _, each := range findImages(string(body)) {
 		linkImg = "http:" + strings.Replace(each, "s.jpg", ".jpg", 1)
 		nameImg = re.FindAllString(linkImg, -1)[1] + ".jpg"
-
 		wg.Add(1)
 		go downloadFile(&wg, linkImg, nameImg)
 	}
