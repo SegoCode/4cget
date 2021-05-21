@@ -23,7 +23,8 @@ func findImages(html string) []string {
 }
 
 func downloadFile(wg *sync.WaitGroup, url string, fileName string, path string) {
-
+	
+	//i know, just work
 	resp, _ := http.Get(url)
 	if resp.StatusCode == 404 {
 		url = strings.Replace(url, ".jpg", ".png", 1)
@@ -33,6 +34,11 @@ func downloadFile(wg *sync.WaitGroup, url string, fileName string, path string) 
 			url = strings.Replace(url, ".png", ".webm", 1)
 			fileName = strings.Replace(fileName, ".png", ".webm", 1)
 			resp, _ = http.Get(url)
+			if resp.StatusCode == 404 {
+				url = strings.Replace(url, ".webm", ".gif", 1)
+				fileName = strings.Replace(fileName, ".webm", ".gif", 1)
+				resp, _ = http.Get(url)
+			}
 		}
 	}
 	defer resp.Body.Close()
