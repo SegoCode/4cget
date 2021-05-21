@@ -24,7 +24,7 @@ Or better, just donwload a binary.
 
 ## Parameters
 
-It's simple, there is only one parameter, the board download url.
+It's simple, there is only one parameter, the url of the thread you want to download.
 ```shell
 4cget https://boards.4channel.org/w/thread/...
 ```
