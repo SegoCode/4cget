@@ -91,6 +91,7 @@ func main() {
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
 		fmt.Println("[!] CONNECTION ERROR")
+		os.Exit(1)
 	}
 	
 	board := strings.Split(inputUrl,"/")[3]
