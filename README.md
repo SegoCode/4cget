@@ -31,3 +31,4 @@ It's simple, there is only one parameter, the url of the thread you want to down
 
 ## Downloads
 
+https://github.com/SegoCode/4cget/releases/tag/1.0
