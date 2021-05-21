@@ -23,7 +23,7 @@ func findImages(html string) []string {
 }
 
 func downloadFile(wg *sync.WaitGroup, url string, fileName string, path string) {
-	
+
 	//i know, just work
 	resp, _ := http.Get(url)
 	if resp.StatusCode == 404 {
@@ -44,8 +44,8 @@ func downloadFile(wg *sync.WaitGroup, url string, fileName string, path string) 
 	defer resp.Body.Close()
 
 	if resp.StatusCode != 404 {
-	
-		img, _ := os.Create(path+"//"+fileName)
+
+		img, _ := os.Create(path + "//" + fileName)
 		defer img.Close()
 
 		b, _ := io.Copy(img, resp.Body)
@@ -53,7 +53,6 @@ func downloadFile(wg *sync.WaitGroup, url string, fileName string, path string) 
 	}
 	wg.Done()
 }
-
 
 func main() {
 	var re = regexp.MustCompile("[0-9]+")
@@ -93,15 +92,15 @@ func main() {
 		fmt.Println("[!] CONNECTION ERROR")
 		os.Exit(1)
 	}
-	
-	board := strings.Split(inputUrl,"/")[3]
-	thread := strings.Split(inputUrl,"/")[5]
-	
+
+	board := strings.Split(inputUrl, "/")[3]
+	thread := strings.Split(inputUrl, "/")[5]
+
 	actualPath, _ := os.Getwd()
 	os.MkdirAll(board, os.ModePerm)
 	os.MkdirAll(board+"//"+thread, os.ModePerm)
-	pathResult := actualPath +"//"+board+"//"+thread
-	
+	pathResult := actualPath + "//" + board + "//" + thread
+
 	for _, each := range findImages(string(body)) {
 		linkImg = "http:" + strings.Replace(each, "s.jpg", ".jpg", 1)
 		nameImg = re.FindAllString(linkImg, -1)[1] + ".jpg"
