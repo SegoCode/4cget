@@ -44,7 +44,6 @@ func downloadFile(wg *sync.WaitGroup, url string, fileName string, path string) 
 	defer resp.Body.Close()
 
 	if resp.StatusCode != 404 {
-
 		img, _ := os.Create(path + "//" + fileName)
 		defer img.Close()
 
