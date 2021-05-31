@@ -86,12 +86,8 @@ func main() {
 	fmt.Println("[*] DOWNLOAD STARTED (" + inputUrl + ") [*] \n")
 
 	resp, _ := http.Get(inputUrl)
-	body, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		fmt.Println("[!] CONNECTION ERROR")
-		os.Exit(1)
-	}
-
+	body, _ := ioutil.ReadAll(resp.Body)
+	
 	board := strings.Split(inputUrl, "/")[3]
 	thread := strings.Split(inputUrl, "/")[5]
 
@@ -101,10 +97,12 @@ func main() {
 	pathResult := actualPath + "//" + board + "//" + thread
 
 	for _, each := range findImages(string(body)) {
-		linkImg = "http:" + strings.Replace(each, "s.jpg", ".jpg", 1)
-		nameImg = re.FindAllString(linkImg, -1)[1] + ".jpg"
-		wg.Add(1)
-		go downloadFile(&wg, linkImg, nameImg, pathResult)
+		if(!strings.Contains(each, "s.4cdn.org")){ //This server contains 4chan cosmetic resources 
+			linkImg = "http:" + strings.Replace(each, "s.jpg", ".jpg", 1)
+			nameImg = re.FindAllString(linkImg, -1)[1] + ".jpg"
+			wg.Add(1)
+			go downloadFile(&wg, linkImg, nameImg, pathResult)
+		}
 	}
 
 	wg.Wait()
