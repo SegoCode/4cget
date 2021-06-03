@@ -23,25 +23,22 @@ func findImages(html string) []string {
 }
 
 func downloadFile(wg *sync.WaitGroup, url string, fileName string, path string) {
+	defer wg.Done()
 
-	//i know, just work
 	resp, _ := http.Get(url)
+	defer resp.Body.Close()
+
 	if resp.StatusCode == 404 {
-		url = strings.Replace(url, ".jpg", ".png", 1)
-		fileName = strings.Replace(fileName, ".jpg", ".png", 1)
-		resp, _ = http.Get(url)
-		if resp.StatusCode == 404 {
-			url = strings.Replace(url, ".png", ".webm", 1)
-			fileName = strings.Replace(fileName, ".png", ".webm", 1)
-			resp, _ = http.Get(url)
-			if resp.StatusCode == 404 {
-				url = strings.Replace(url, ".webm", ".gif", 1)
-				fileName = strings.Replace(fileName, ".webm", ".gif", 1)
-				resp, _ = http.Get(url)
+		urldext := strings.Split(url, ".jpg")[0]
+		extList := []string{".png", ".webm", ".gif"}
+		for _, ext := range extList {
+			resp, _ = http.Get(urldext + ext)
+			if resp.StatusCode != 404 {
+				fileName = strings.Replace(fileName, ".jpg", ext, 1)
+				break
 			}
 		}
 	}
-	defer resp.Body.Close()
 
 	if resp.StatusCode != 404 {
 		img, _ := os.Create(path + "//" + fileName)
@@ -50,7 +47,7 @@ func downloadFile(wg *sync.WaitGroup, url string, fileName string, path string) 
 		b, _ := io.Copy(img, resp.Body)
 		fmt.Println("File downloaded: "+fileName+" - Size (Bytes):", b)
 	}
-	wg.Done()
+
 }
 
 func main() {
@@ -87,7 +84,7 @@ func main() {
 
 	resp, _ := http.Get(inputUrl)
 	body, _ := ioutil.ReadAll(resp.Body)
-	
+
 	board := strings.Split(inputUrl, "/")[3]
 	thread := strings.Split(inputUrl, "/")[5]
 
@@ -97,7 +94,7 @@ func main() {
 	pathResult := actualPath + "//" + board + "//" + thread
 
 	for _, each := range findImages(string(body)) {
-		if(!strings.Contains(each, "s.4cdn.org")){ //This server contains 4chan cosmetic resources 
+		if !strings.Contains(each, "s.4cdn.org") { //This server contains 4chan cosmetic resources
 			linkImg = "http:" + strings.Replace(each, "s.jpg", ".jpg", 1)
 			nameImg = re.FindAllString(linkImg, -1)[1] + ".jpg"
 			wg.Add(1)
