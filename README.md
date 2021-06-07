@@ -20,7 +20,7 @@ git clone https://github.com/SegoCode/4cget
 cd 4cget
 go run 4cget.go https://boards.4channel.org/w/thread/...
 ```
-Or better [donwload a binary](https://github.com/SegoCode/4cget/releases/tag/1.0).
+Or better [donwload a binary](https://github.com/SegoCode/4cget/releases).
 
 ## Parameters
 
@@ -31,4 +31,4 @@ It's simple, there is only one parameter, the url of the thread you want to down
 
 ## Downloads
 
-https://github.com/SegoCode/4cget/releases/tag/1.0
+https://github.com/SegoCode/4cget/releases/
