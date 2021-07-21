@@ -4,12 +4,14 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
+	"math"
 	"net/http"
 	"net/url"
 	"os"
 	"regexp"
 	"strings"
 	"sync"
+	"time"
 )
 
 func findImages(html string) []string {
@@ -45,7 +47,19 @@ func downloadFile(wg *sync.WaitGroup, url string, fileName string, path string) 
 		defer img.Close()
 
 		b, _ := io.Copy(img, resp.Body)
-		fmt.Println("File downloaded: "+fileName+" - Size (Bytes):", b)
+
+		var suffixes [5]string
+		suffixes[0] = "B"
+		suffixes[1] = "KB"
+		suffixes[2] = "MB"
+		suffixes[3] = "GB"
+		suffixes[4] = "TB"
+
+		base := math.Log(float64(b)) / math.Log(1024)
+		getSize := math.Pow(1024, base-math.Floor(base))
+		getSuffix := suffixes[int(math.Floor(base))]
+
+		fmt.Printf("File downloaded: "+fileName+" - Size: %.2f "+string(getSuffix)+"\n", getSize)
 	}
 
 }
@@ -82,6 +96,9 @@ func main() {
 
 	fmt.Println("[*] DOWNLOAD STARTED (" + inputUrl + ") [*] \n")
 
+	start := time.Now()
+	files := 0
+
 	resp, _ := http.Get(inputUrl)
 	body, _ := ioutil.ReadAll(resp.Body)
 
@@ -93,16 +110,18 @@ func main() {
 	os.MkdirAll(board+"//"+thread, os.ModePerm)
 	pathResult := actualPath + "//" + board + "//" + thread
 
+	fmt.Println("Folder created : " + actualPath + "...")
+
 	for _, each := range findImages(string(body)) {
 		if !strings.Contains(each, "s.4cdn.org") { //This server contains 4chan cosmetic resources
 			linkImg = "http:" + strings.Replace(each, "s.jpg", ".jpg", 1)
 			nameImg = re.FindAllString(linkImg, -1)[1] + ".jpg"
 			wg.Add(1)
 			go downloadFile(&wg, linkImg, nameImg, pathResult)
+			files++
 		}
 	}
 
 	wg.Wait()
-	fmt.Println("\n" + "[*] DOWNLOAD COMPLETE [*]")
-
+	fmt.Printf("\n"+"✓ DOWNLOAD COMPLETE, %v FILES IN %v "+"\n", files, time.Since(start))
 }
