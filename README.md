@@ -1,5 +1,5 @@
 # 4cget
-<img  src="https://raw.githubusercontent.com/SegoCode/4cget/main/media/demo.gif">
+<img  src="https://raw.githubusercontent.com/SegoCode/4cget/main/media/demo1.3.gif">
 
 Easy to use, simply and fast 4chan thread media downloader.
 
