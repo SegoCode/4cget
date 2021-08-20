@@ -25,10 +25,15 @@ Or better [donwload a binary](https://github.com/SegoCode/4cget/releases).
 
 ## Parameters
 
-It's simple, there is only one parameter, the url of the thread you want to download.
+One parameter, the url of the thread you want to download;
 ```shell
 4cget https://boards.4channel.org/w/thread/...
 ```
+Or `monitor mode` and check for new files every specified seconds;
+```shell
+4cget https://boards.4channel.org/w/thread/... -monitor 10
+```
+*In this example 4cget will check every 10 seconds.*
 
 ## Downloads
 
