@@ -9,7 +9,7 @@
 </p>
 
 ## About
-Easy to use, simply and fast 4chan thread media downloader.
+Easy to use, simply and fast 4chan thread media downloader. Simple, easy and functional.
 
 ## Features
 
