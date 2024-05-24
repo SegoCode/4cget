@@ -9,11 +9,11 @@
 </p>
 
 ## About
-Easy to use, simply and fast 4chan thread media downloader.
+Easy to use, simply and fast 4chan thread media downloader. Simple, easy and functional.
 
 ## Features
 
-- Portable
+- Portable, single executable
 - Not affected by cloudflare
 - No dependences, no go mod
 
