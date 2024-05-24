@@ -18,7 +18,7 @@ run from source code (Golang installation required).
 
 ```shell
 git clone https://github.com/SegoCode/4cget
-cd 4cget
+cd code\4cget
 go run 4cget.go https://boards.4channel.org/w/thread/...
 ```
 Or better [donwload a binary](https://github.com/SegoCode/4cget/releases).
