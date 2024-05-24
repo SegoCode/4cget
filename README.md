@@ -18,9 +18,10 @@ Easy to use, simply and fast 4chan thread media downloader. Simple, easy and fun
 - No dependences, no go mod
 
 ## Quick Start & Information
-Thread lifecycle and download process in a concurrent image downloader application
-<p align="center"><img  src="https://raw.githubusercontent.com/SegoCode/4cget/main/media/diagram.png"></p>
-
+<details>
+  <summary>Thread lifecycle and download process in a concurrent image downloader application. Click here to show it.</summary> 
+  <p align="center"><img src="https://raw.githubusercontent.com/SegoCode/4cget/main/media/diagram.png"></p>
+</details>
 
 4cget downloads the files organized by boards and threads.
 
