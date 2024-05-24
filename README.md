@@ -13,7 +13,7 @@ Easy to use, simply and fast 4chan thread media downloader. Simple, easy and fun
 
 ## Features
 
-- Portable
+- Portable, single executable
 - Not affected by cloudflare
 - No dependences, no go mod
 
