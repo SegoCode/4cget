@@ -46,28 +46,30 @@ func downloadFile(wg *sync.WaitGroup, url string, fileName string, path string) 
 	}
 
 	if resp.StatusCode != 404 {
-		if _, err := os.Stat(path + "//" + fileName); os.IsNotExist(err) || !monitorMode {
-
-			img, _ := os.Create(path + "//" + fileName)
+		filePath := path + "//" + fileName
+		if _, err := os.Stat(filePath); os.IsNotExist(err) || !monitorMode {
+			img, err := os.Create(filePath)
+			if err != nil {
+				fmt.Println("[!] Error creating file:", err)
+				return
+			}
 			defer img.Close()
-
-			b, _ := io.Copy(img, resp.Body)
-
-			var suffixes [5]string
-			suffixes[0] = "B"
-			suffixes[1] = "KB"
-			suffixes[2] = "MB"
-			suffixes[3] = "GB"
-			suffixes[4] = "TB"
-
+	
+			b, err := io.Copy(img, resp.Body)
+			if err != nil {
+				fmt.Println("[!] Error copying response body:", err)
+				return
+			}
+	
+			suffixes := []string{"B", "KB", "MB", "GB", "TB"}
+	
 			base := math.Log(float64(b)) / math.Log(1024)
 			getSize := math.Pow(1024, base-math.Floor(base))
 			getSuffix := suffixes[int(math.Floor(base))]
-
-			fmt.Printf("File downloaded: "+fileName+" - Size: %.2f "+string(getSuffix)+"\n", getSize)
+	
+			fmt.Printf("File downloaded: %s - Size: %.2f %s\n", fileName, getSize, getSuffix)
 		}
 	}
-
 }
 
 func main() {
