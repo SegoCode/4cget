@@ -57,3 +57,8 @@ Or `monitor mode` and check for new files every specified seconds;
 ## Download
 
 https://github.com/SegoCode/4cget/releases/
+
+---
+<p align="center"><a href="https://github.com/SegoCode/4cget/graphs/contributors">
+  <img src="https://contrib.rocks/image?repo=SegoCode/4cget" />
+</a></p>
