@@ -18,6 +18,9 @@ Easy to use, simply and fast 4chan thread media downloader.
 - No dependences, no go mod
 
 ## Quick Start & Information
+Thread lifecycle and download process in a concurrent image downloader application
+<p align="center"><img  src="https://raw.githubusercontent.com/SegoCode/4cget/main/media/diagram.png"></p>
+
 
 4cget downloads the files organized by boards and threads.
 
@@ -48,6 +51,7 @@ Or `monitor mode` and check for new files every specified seconds;
 4cget https://boards.4channel.org/w/thread/... -monitor 10
 ```
 *In this example 4cget will check every 10 seconds.*
+
 
 ## Download
 
