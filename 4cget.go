@@ -77,14 +77,13 @@ func main() {
 	var linkImg string
 	var nameImg string
 	var secondsIteration int
+	var monitorMode bool
 
 	//Usage validation
 	if len(os.Args) <= 1 {
 		fmt.Println("[!] USAGE: 4cget https://boards.4channel.org/w/thread/.../...")
 		os.Exit(1)
 	}
-
-	fmt.Println(len(os.Args))
 
 	if len(os.Args) == 4 && strings.Compare(os.Args[2], "-monitor") == 0 {
 		num, err := strconv.Atoi(os.Args[3])
@@ -94,7 +93,7 @@ func main() {
 		}
 	}
 
-	//input url validation
+	// Input URL validation
 	inputUrl = os.Args[1]
 	_, errParse := url.ParseRequestURI(inputUrl)
 	if errParse != nil {
@@ -102,6 +101,7 @@ func main() {
 		os.Exit(1)
 	}
 
+	// Display banner
 	fmt.Println(`
 ░░██╗██╗░█████╗░░██████╗░███████╗████████╗
 ░██╔╝██║██╔══██╗██╔════╝░██╔════╝╚══██╔══╝
@@ -111,30 +111,36 @@ func main() {
 ░░░░░╚═╝░╚════╝░░╚═════╝░╚══════╝░░░╚═╝░░░
                     [ github.com/SegoCode ]` + "\n")
 
-	fmt.Println("[*] DOWNLOAD STARTED (" + inputUrl + ") [*] \n")
-
+	fmt.Println("[*] DOWNLOAD STARTED (" + inputUrl + ") [*]\n")
 	if monitorMode {
-		fmt.Println("[*] MONITOR MODE ENABLE [*]" + "\n")
+		fmt.Println("[*] MONITOR MODE ENABLE [*]\n")
 	}
 
 	start := time.Now()
 	files := 0
 
-	board := strings.Split(inputUrl, "/")[3]
-	thread := strings.Split(inputUrl, "/")[5]
+	// Parse board and thread from URL
+	parts := strings.Split(inputUrl, "/")
+	board := parts[3]
+	thread := parts[5]
 
+	// Create necessary directories
 	actualPath, _ := os.Getwd()
-	os.MkdirAll(board, os.ModePerm)
-	os.MkdirAll(board+"//"+thread, os.ModePerm)
-	pathResult := actualPath + "//" + board + "//" + thread
+	os.MkdirAll(fmt.Sprintf("%s/%s", actualPath, board), os.ModePerm)
+	os.MkdirAll(fmt.Sprintf("%s/%s/%s", actualPath, board, thread), os.ModePerm)
+	pathResult := fmt.Sprintf("%s/%s/%s", actualPath, board, thread)
 
 	fmt.Println("Folder created : " + actualPath + "...")
+
 	for {
+		// Fetch the URL content
 		resp, _ := http.Get(inputUrl)
 		body, _ := ioutil.ReadAll(resp.Body)
+		resp.Body.Close()
 
+		// Find and download images
 		for _, each := range findImages(string(body)) {
-			if !strings.Contains(each, "s.4cdn.org") { //This server contains 4chan cosmetic resources
+			if !strings.Contains(each, "s.4cdn.org") {
 				linkImg = "http:" + strings.Replace(each, "s.jpg", ".jpg", 1)
 				nameImg = re.FindAllString(linkImg, -1)[1] + ".jpg"
 				wg.Add(1)
@@ -148,14 +154,13 @@ func main() {
 			break
 		} else {
 			for i := secondsIteration; i >= 0; i-- {
-				fmt.Printf("Press Ctrl+C to close 4cget" + "\n")
-				fmt.Printf("Checking for new files in %v seconds...."+"\n", i)
+				fmt.Printf("Press Ctrl+C to close 4cget\n")
+				fmt.Printf("Checking for new files in %v seconds....\n", i)
 				time.Sleep(1 * time.Second)
-				print("\033[F")
-				print("\033[F")
+				print("\033[F\033[F")
 			}
 		}
-
 	}
-	fmt.Printf("\n"+"✓ DOWNLOAD COMPLETE, %v FILES IN %v "+"\n", files, time.Since(start))
+
+	fmt.Printf("\n✓ DOWNLOAD COMPLETE, %v FILES IN %v\n", files, time.Since(start))
 }
