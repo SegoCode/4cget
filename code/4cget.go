@@ -17,14 +17,38 @@ import (
 
 var monitorMode bool
 
-func findImages(html string) []string {
-	imgRE := regexp.MustCompile(`<img[^>]+\bsrc=["']([^"']+)["']`)
-	imgs := imgRE.FindAllStringSubmatch(html, -1)
-	out := make([]string, len(imgs))
-	for i := range out {
-		out[i] = imgs[i][1]
+func unique(elements []string) []string {
+	seen := map[string]struct{}{}
+	result := []string{}
+
+	for _, e := range elements {
+		if _, ok := seen[e]; !ok {
+			seen[e] = struct{}{}
+			result = append(result, e)
+		}
 	}
-	return out
+
+	return result
+}
+
+func findImages(html string, dochen bool) []string {
+	var imgRE *regexp.Regexp
+	var out []string
+
+	if dochen {
+		imgRE = regexp.MustCompile(`https?://[^/]+/assets/images/src/[a-zA-Z0-9]+\.(png|jpg)`)
+		out = imgRE.FindAllString(html, -1)
+	} else {
+		imgRE = regexp.MustCompile(`<img[^>]+\bsrc=["']([^"']+)["']`)
+		imgs := imgRE.FindAllStringSubmatch(html, -1)
+		out = make([]string, len(imgs))
+		for i := range out {
+			out[i] = imgs[i][1]
+		}
+	}
+
+	uniqueOut := unique(out)
+	return uniqueOut
 }
 
 func downloadFile(wg *sync.WaitGroup, url string, fileName string, path string) {
@@ -81,6 +105,9 @@ func main() {
 	var secondsIteration int
 	var monitorMode bool
 
+	var thread string
+	var twoChen bool
+
 	//Usage validation
 	if len(os.Args) <= 1 {
 		fmt.Println("[!] USAGE: 4cget https://boards.4channel.org/w/thread/.../...")
@@ -124,7 +151,14 @@ func main() {
 	// Parse board and thread from URL
 	parts := strings.Split(inputUrl, "/")
 	board := parts[3]
-	thread := parts[5]
+
+	if len(parts) > 5 && parts[5] != "" {
+		thread = parts[5]
+		twoChen = false
+	} else {
+		thread = parts[4]
+		twoChen = true
+	}
 
 	// Create necessary directories
 	actualPath, _ := os.Getwd()
@@ -141,16 +175,23 @@ func main() {
 		resp.Body.Close()
 
 		// Find and download images
-		for _, each := range findImages(string(body)) {
-			if !strings.Contains(each, "s.4cdn.org") {
-				linkImg = "http:" + strings.Replace(each, "s.jpg", ".jpg", 1)
-				nameImg = re.FindAllString(linkImg, -1)[1] + ".jpg"
+		for _, each := range findImages(string(body), twoChen) {
+			if twoChen {
+				parts := strings.Split(each, "/")
+				nameImg := parts[len(parts)-1]
 				wg.Add(1)
-				go downloadFile(&wg, linkImg, nameImg, pathResult)
+				go downloadFile(&wg, each, nameImg, pathResult)
 				files++
+			} else {
+				if !strings.Contains(each, "s.4cdn.org") {
+					linkImg = "http:" + strings.Replace(each, "s.jpg", ".jpg", 1)
+					nameImg = re.FindAllString(linkImg, -1)[1] + ".jpg"
+					wg.Add(1)
+					go downloadFile(&wg, linkImg, nameImg, pathResult)
+					files++
+				}
 			}
 		}
-
 		wg.Wait()
 		if !monitorMode {
 			break
