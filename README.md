@@ -18,6 +18,10 @@ Easy to use, simply and fast 4chan thread media downloader. Simple, easy and fun
 - No dependences, no go mod
 
 ## Quick Start & Information
+
+> [!CAUTION]
+> Since 4cget is multithreaded, some CDN may detect it as a ddos attack and subsequent executions may not work as expected. (there is no evidence that it happens with 4chan at the moment)
+
 <details>
   <summary>Thread lifecycle and download process in concurrent image downloading. Click here to show it.</summary> 
   <p align="center"><img src="https://raw.githubusercontent.com/SegoCode/4cget/main/media/diagram.png"></p>

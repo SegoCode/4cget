@@ -17,38 +17,60 @@ import (
 
 var monitorMode bool
 
-func unique(elements []string) []string {
-	seen := map[string]struct{}{}
-	result := []string{}
-
-	for _, e := range elements {
-		if _, ok := seen[e]; !ok {
-			seen[e] = struct{}{}
-			result = append(result, e)
-		}
-	}
-
-	return result
+// SiteInfo holds the URL pattern, regex for image extraction, and an ID.
+type SiteInfo struct {
+	ID     string
+	URL    string
+	ImgRE  *regexp.Regexp
 }
 
-func findImages(html string, dochen bool) []string {
-	var imgRE *regexp.Regexp
-	var out []string
+// Initialize the site info map with URL patterns and corresponding regex.
+var siteInfoMap = map[string]SiteInfo{
+	"4chan": {
+		ID:    "4chan",
+		URL:   "https://www.4chan.org/",
+		ImgRE: regexp.MustCompile(`<a[^>]+href="(//is2\.4chan\.org[^"]+)"`),
+	},
+	"twochen": {
+		ID:    "twochen",
+		URL:   "https://sturdychan.help/",
+		ImgRE: regexp.MustCompile(`https?://[^/]+/assets/images/src/[a-zA-Z0-9]+\.(png|jpg)`),
+	},
+}
 
-	if dochen {
-		imgRE = regexp.MustCompile(`https?://[^/]+/assets/images/src/[a-zA-Z0-9]+\.(png|jpg)`)
-		out = imgRE.FindAllString(html, -1)
-	} else {
-		imgRE = regexp.MustCompile(`<img[^>]+\bsrc=["']([^"']+)["']`)
-		imgs := imgRE.FindAllStringSubmatch(html, -1)
-		out = make([]string, len(imgs))
-		for i := range out {
-			out[i] = imgs[i][1]
-		}
+// findImages extracts image URLs from the given HTML based on the site specified.
+func findImages(html, siteID string) []string {
+	var out []string
+	siteInfo, exists := siteInfoMap[siteID]
+	if !exists {
+		fmt.Printf("No site information found for ID: %s\n", siteID)
+		return out
 	}
 
-	uniqueOut := unique(out)
+	matches := siteInfo.ImgRE.FindAllStringSubmatch(html, -1)
+	for _, match := range matches {
+		url := match[1]
+		if siteID == "4chan" {
+			url = strings.Replace(url, "//is2.4chan.org", "https://i.4cdn.org", 1)
+		}
+		out = append(out, url)
+	}
+
+	uniqueOut := unique(out) // Clear array of duplicates
 	return uniqueOut
+}
+
+// unique removes duplicate strings from a slice.
+func unique(input []string) []string {
+	u := make(map[string]bool)
+	var uniqueList []string
+	for _, val := range input {
+		if _, ok := u[val]; !ok {
+			u[val] = true
+			uniqueList = append(uniqueList, val)
+		}
+	}
+	return uniqueList
 }
 
 func downloadFile(wg *sync.WaitGroup, url string, fileName string, path string) {
@@ -57,20 +79,8 @@ func downloadFile(wg *sync.WaitGroup, url string, fileName string, path string) 
 	resp, _ := http.Get(url)
 	defer resp.Body.Close()
 
-	if resp.StatusCode == 404 {
-		urldext := strings.Split(url, ".jpg")[0]
-		extList := []string{".png", ".webm", ".gif"}
-		for _, ext := range extList {
-			resp, _ = http.Get(urldext + ext)
-			if resp.StatusCode != 404 {
-				fileName = strings.Replace(fileName, ".jpg", ext, 1)
-				break
-			}
-		}
-	}
-
 	if resp.StatusCode != 404 {
-		filePath := path + "//" + fileName
+		filePath := path + "/" + fileName
 		if _, err := os.Stat(filePath); os.IsNotExist(err) || !monitorMode {
 			img, err := os.Create(filePath)
 			if err != nil {
@@ -78,37 +88,33 @@ func downloadFile(wg *sync.WaitGroup, url string, fileName string, path string) 
 				return
 			}
 			defer img.Close()
-	
+
 			b, err := io.Copy(img, resp.Body)
 			if err != nil {
 				fmt.Println("[!] Error copying response body:", err)
 				return
 			}
-	
+
 			suffixes := []string{"B", "KB", "MB", "GB", "TB"}
-	
+
 			base := math.Log(float64(b)) / math.Log(1024)
 			getSize := math.Pow(1024, base-math.Floor(base))
 			getSuffix := suffixes[int(math.Floor(base))]
-	
+
 			fmt.Printf("File downloaded: %s - Size: %.2f %s\n", fileName, getSize, getSuffix)
 		}
 	}
 }
 
 func main() {
-	var re = regexp.MustCompile("[0-9]+")
 	var wg sync.WaitGroup
 	var inputUrl string
-	var linkImg string
-	var nameImg string
 	var secondsIteration int
 	var monitorMode bool
-
 	var thread string
-	var twoChen bool
+	var siteID string
 
-	//Usage validation
+	// Usage validation
 	if len(os.Args) <= 1 {
 		fmt.Println("[!] USAGE: 4cget https://boards.4channel.org/w/thread/.../...")
 		os.Exit(1)
@@ -124,13 +130,19 @@ func main() {
 
 	// Input URL validation
 	inputUrl = os.Args[1]
-	_, errParse := url.ParseRequestURI(inputUrl)
+	parsedURL, errParse := url.ParseRequestURI(inputUrl)
 	if errParse != nil {
 		fmt.Println("[!] URL NOT VALID (Example: https://boards.4channel.org/w/thread/.../...)")
 		os.Exit(1)
 	}
 
-	// Display banner
+	// Determine if the site is 4chan or twochen
+	if strings.Contains(parsedURL.Host, "4chan") {
+		siteID = "4chan"
+	} else {
+		siteID = "twochen"
+	}
+
 	fmt.Println(`
 ░░██╗██╗░█████╗░░██████╗░███████╗████████╗
 ░██╔╝██║██╔══██╗██╔════╝░██╔════╝╚══██╔══╝
@@ -152,12 +164,11 @@ func main() {
 	parts := strings.Split(inputUrl, "/")
 	board := parts[3]
 
-	if len(parts) > 5 && parts[5] != "" {
+	// Handle the thread part depending on the site
+	if siteID == "4chan" {
 		thread = parts[5]
-		twoChen = false
 	} else {
 		thread = parts[4]
-		twoChen = true
 	}
 
 	// Create necessary directories
@@ -168,33 +179,20 @@ func main() {
 
 	fmt.Println("Folder created : " + actualPath + "...")
 
-	for {
-		// Fetch the URL content
+	for { // Main loop for monitorMode
 		resp, _ := http.Get(inputUrl)
 		body, _ := ioutil.ReadAll(resp.Body)
 		resp.Body.Close()
-
-		// Find and download images
-		for _, each := range findImages(string(body), twoChen) {
-			if twoChen {
-				parts := strings.Split(each, "/")
-				nameImg := parts[len(parts)-1]
-				wg.Add(1)
-				go downloadFile(&wg, each, nameImg, pathResult)
-				files++
-			} else {
-				if !strings.Contains(each, "s.4cdn.org") {
-					linkImg = "http:" + strings.Replace(each, "s.jpg", ".jpg", 1)
-					nameImg = re.FindAllString(linkImg, -1)[1] + ".jpg"
-					wg.Add(1)
-					go downloadFile(&wg, linkImg, nameImg, pathResult)
-					files++
-				}
-			}
+		for _, each := range findImages(string(body), siteID) {
+			parts := strings.Split(each, "/")
+			nameImg := parts[len(parts)-1]
+			wg.Add(1)
+			go downloadFile(&wg, each, nameImg, pathResult)
+			files++
 		}
 		wg.Wait()
 		if !monitorMode {
-			break
+			break // Exit main loop
 		} else {
 			for i := secondsIteration; i >= 0; i-- {
 				fmt.Printf("Press Ctrl+C to close 4cget\n")
