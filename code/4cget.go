@@ -28,13 +28,13 @@ type SiteInfo struct {
 var siteInfoMap = map[string]SiteInfo{
 	"4chan": {
 		ID:    "4chan",
-		URL:   "https://www.4chan.org/",
+		URL:   "https://boards.4chan.org",
 		ImgRE: regexp.MustCompile(`<a[^>]+href="(//is2\.4chan\.org[^"]+)"`),
 	},
 	"twochen": {
 		ID:    "twochen",
 		URL:   "https://sturdychan.help/",
-		ImgRE: regexp.MustCompile(`https?://[^/]+/assets/images/src/[a-zA-Z0-9]+\.(png|jpg)`),
+		ImgRE: regexp.MustCompile(`(https?://[^/]+/assets/images/src/[a-zA-Z0-9]+\.(?:png|jpg))`),
 	},
 }
 
@@ -50,7 +50,7 @@ func findImages(html, siteID string) []string {
 	matches := siteInfo.ImgRE.FindAllStringSubmatch(html, -1)
 	for _, match := range matches {
 		url := match[1]
-		if siteID == "4chan" {
+		if siteID == siteInfoMap["4chan"].ID {
 			url = strings.Replace(url, "//is2.4chan.org", "https://i.4cdn.org", 1)
 		}
 		out = append(out, url)
@@ -136,11 +136,21 @@ func main() {
 		os.Exit(1)
 	}
 
-	// Determine if the site is 4chan or twochen
-	if strings.Contains(parsedURL.Host, "4chan") {
-		siteID = "4chan"
-	} else {
-		siteID = "twochen"
+	for _, site := range siteInfoMap {
+		parsedSiteURL, err := url.Parse(site.URL)
+		if err != nil {
+			fmt.Printf("Error parsing site URL %s: %v\n", site.URL, err)
+			continue
+		}
+		if parsedURL.Host == parsedSiteURL.Host {
+			siteID = site.ID
+			break
+		}
+	}
+
+	if siteID == "" {
+		fmt.Println("[!] Unsupported site")
+		os.Exit(1)
 	}
 
 	fmt.Println(`
@@ -165,7 +175,7 @@ func main() {
 	board := parts[3]
 
 	// Handle the thread part depending on the site
-	if siteID == "4chan" {
+	if siteID == siteInfoMap["4chan"].ID {
 		thread = parts[5]
 	} else {
 		thread = parts[4]
