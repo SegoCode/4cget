@@ -1,0 +1,100 @@
+name: Build and Release
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build-and-release:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Set up git
+        run: |
+          git config --global user.name "github-actions"
+          git config --global user.email "github-actions@github.com"
+
+      - name: Fetch all tags
+        run: git fetch --tags
+
+      - name: Get latest tag
+        id: get_latest_tag
+        run: |
+          # Get the latest tag
+          latest_tag=$(git describe --tags "$(git rev-list --tags --max-count=1)" 2>/dev/null || echo "")
+          echo "latest_tag=$latest_tag" >> $GITHUB_ENV
+
+      - name: Determine new version
+        id: determine_version
+        run: |
+          latest_tag=${{ env.latest_tag }}
+          if [ -z "$latest_tag" ]; then
+            # Initialize the version to 1.0 if no tags exist
+            new_version="1.0"
+          else
+            # Extract the major and minor version and increment the minor version
+            major_version=$(echo $latest_tag | cut -d. -f1)
+            minor_version=$(echo $latest_tag | cut -d. -f2)
+            new_minor_version=$((minor_version + 1))
+            new_version="$major_version.$new_minor_version"
+
+            # Check if the new version tag already exists
+            while git rev-parse "refs/tags/$new_version" >/dev/null 2>&1; do
+              new_minor_version=$((new_minor_version + 1))
+              new_version="$major_version.$new_minor_version"
+            done
+          fi
+          echo "new_version=$new_version" >> $GITHUB_ENV
+
+      - name: Set up Go
+        uses: actions/setup-go@v3
+        with:
+          go-version: '1.20'
+
+      - name: Compile Go program for multiple platforms
+        run: |
+          GOFILE=./code/4cget.go
+          OUTPUT_DIR=build
+
+          mkdir -p $OUTPUT_DIR
+
+          # Compile for linux-386
+          echo "Compiling for linux-386..."
+          GOOS=linux GOARCH=386 go build -trimpath -ldflags="-s -w" -o $OUTPUT_DIR/4cget-linux-386 $GOFILE
+
+          # Compile for linux-amd64
+          echo "Compiling for linux-amd64..."
+          GOOS=linux GOARCH=amd64 go build -trimpath -ldflags="-s -w" -o $OUTPUT_DIR/4cget-linux-amd64 $GOFILE
+
+          # Compile for linux-arm
+          echo "Compiling for linux-arm..."
+          GOOS=linux GOARCH=arm go build -trimpath -ldflags="-s -w" -o $OUTPUT_DIR/4cget-linux-arm $GOFILE
+
+          # Compile for windows-386.exe
+          echo "Compiling for windows-386.exe..."
+          GOOS=windows GOARCH=386 go build -trimpath -ldflags="-s -w" -o $OUTPUT_DIR/4cget-windows-386.exe $GOFILE
+
+          # Compile for windows-amd64.exe
+          echo "Compiling for windows-amd64.exe..."
+          GOOS=windows GOARCH=amd64 go build -trimpath -ldflags="-s -w" -o $OUTPUT_DIR/4cget-windows-amd64.exe $GOFILE
+
+      - name: Create new tag
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          new_version=${{ env.new_version }}
+          git tag -a "$new_version" -m "Automatically generated version $new_version"
+          git push origin "$new_version"
+
+      - name: Create Release and Upload Assets
+        uses: softprops/action-gh-release@v1
+        with:
+          files: build/*
+          tag_name: ${{ env.new_version }}
+          name: 4cget
+          draft: false
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
