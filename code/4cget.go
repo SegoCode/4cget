@@ -1,6 +1,7 @@
 package main
 
 import (
+	"flag"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -73,10 +74,14 @@ func unique(input []string) []string {
 	return uniqueList
 }
 
-func downloadFile(wg *sync.WaitGroup, url string, fileName string, path string) {
+func downloadFile(wg *sync.WaitGroup, url string, fileName string, path string, client *http.Client) {
 	defer wg.Done()
 
-	resp, _ := http.Get(url)
+	resp, err := client.Get(url)
+	if err != nil {
+		fmt.Println("[!] Error downloading file:", err)
+		return
+	}
 	defer resp.Body.Close()
 
 	if resp.StatusCode != 404 {
@@ -109,27 +114,49 @@ func downloadFile(wg *sync.WaitGroup, url string, fileName string, path string) 
 func main() {
 	var wg sync.WaitGroup
 	var inputUrl string
-	var secondsIteration int
-	var monitorMode bool
 	var thread string
 	var siteID string
 
-	// Usage validation
-	if len(os.Args) <= 1 {
-		fmt.Println("[!] USAGE: 4cget https://boards.4channel.org/w/thread/.../...")
-		os.Exit(1)
+	// Define command-line flags
+	fs := flag.NewFlagSet(os.Args[0], flag.ExitOnError)
+	monitorModeFlag := fs.Bool("monitor", false, "Enable monitor mode")
+	intervalFlag := fs.Int("interval", 60, "Monitor interval in seconds")
+	sleepFlag := fs.Int("sleep", 0, "Sleep duration in seconds between downloads")
+	proxyFlag := fs.String("proxy", "", "Proxy URL (e.g., http://proxyserver:port)")
+
+	// Manually parse flags and positional arguments
+	var args []string
+	for i := 1; i < len(os.Args); i++ {
+		arg := os.Args[i]
+		if arg == "--" {
+			// All remaining args are positional
+			args = append(args, os.Args[i+1:]...)
+			break
+		}
+		if strings.HasPrefix(arg, "-") {
+			// Flag
+			fs.Parse(os.Args[i:])
+			break
+		}
+		// Positional argument
+		args = append(args, arg)
 	}
 
-	if len(os.Args) == 4 && strings.Compare(os.Args[2], "-monitor") == 0 {
-		num, err := strconv.Atoi(os.Args[3])
-		if err == nil {
-			secondsIteration = num
-			monitorMode = true
-		}
-	}
+	// After parsing flags, any remaining arguments are positional
+	args = append(args, fs.Args()...)
 
 	// Input URL validation
-	inputUrl = os.Args[1]
+	if len(args) < 1 {
+		fmt.Println("[!] USAGE: 4cget [options] https://boards.4channel.org/w/thread/.../...")
+		fs.PrintDefaults()
+		os.Exit(1)
+	}
+	inputUrl = args[0]
+	monitorMode = *monitorModeFlag
+	secondsIteration := *intervalFlag
+	sleepDuration := *sleepFlag
+	proxyURL := *proxyFlag
+
 	parsedURL, errParse := url.ParseRequestURI(inputUrl)
 	if errParse != nil {
 		fmt.Println("[!] URL NOT VALID (Example: https://boards.4channel.org/w/thread/.../...)")
@@ -164,7 +191,7 @@ func main() {
 
 	fmt.Println("[*] DOWNLOAD STARTED (" + inputUrl + ") [*]\n")
 	if monitorMode {
-		fmt.Println("[*] MONITOR MODE ENABLE [*]\n")
+		fmt.Println("[*] MONITOR MODE ENABLED [*]\n")
 	}
 
 	start := time.Now()
@@ -189,16 +216,37 @@ func main() {
 
 	fmt.Println("Folder created : " + actualPath + "...")
 
+	// Setup HTTP client with optional proxy
+	client := &http.Client{}
+	if proxyURL != "" {
+		proxyParsed, err := url.Parse(proxyURL)
+		if err != nil {
+			fmt.Println("[!] Invalid proxy URL:", err)
+			os.Exit(1)
+		}
+		client.Transport = &http.Transport{Proxy: http.ProxyURL(proxyParsed)}
+	}
+
 	for { // Main loop for monitorMode
-		resp, _ := http.Get(inputUrl)
+		resp, err := client.Get(inputUrl)
+		if err != nil {
+			fmt.Println("[!] Error fetching URL:", err)
+			os.Exit(1)
+		}
 		body, _ := ioutil.ReadAll(resp.Body)
 		resp.Body.Close()
-		for _, each := range findImages(string(body), siteID) {
+		imageURLs := findImages(string(body), siteID)
+		for _, each := range imageURLs {
 			parts := strings.Split(each, "/")
 			nameImg := parts[len(parts)-1]
 			wg.Add(1)
-			go downloadFile(&wg, each, nameImg, pathResult)
+			go downloadFile(&wg, each, nameImg, pathResult, client)
 			files++
+
+			// Sleep between starting downloads if sleepDuration > 0
+			if sleepDuration > 0 {
+				time.Sleep(time.Duration(sleepDuration) * time.Second)
+			}
 		}
 		wg.Wait()
 		if !monitorMode {
