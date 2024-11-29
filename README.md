@@ -50,7 +50,7 @@ Or better [donwload a binary](https://github.com/SegoCode/4cget/releases).
 
 `4cget` provides various parameters to customize its behavior. Below are detailed examples and explanations for each available option:
 
-## Basic Usage
+#### Basic Usage
 
 Download all images from a thread:
 
@@ -58,7 +58,7 @@ Download all images from a thread:
 4cget https://boards.4channel.org/w/thread/...
 ```
 
-## Enable Monitor Mode
+#### Enable Monitor Mode
 
 Use the `--monitor` flag to enable monitor mode, which checks for new files every specified number of seconds:
 
@@ -68,7 +68,7 @@ Use the `--monitor` flag to enable monitor mode, which checks for new files ever
 
 *In this example, `4cget` will check every 10 seconds for new images.*
 
-## Add Delay Between Downloads
+####  Add Delay Between Downloads
 
 Use the `--sleep` flag to add a delay between downloads (useful to avoid rate-limiting):
 
@@ -78,7 +78,7 @@ Use the `--sleep` flag to add a delay between downloads (useful to avoid rate-li
 
 *This adds a 2-second delay between each download.*
 
-## Use a Proxy Server
+#### Use a Proxy Server
 
 If you need to route your requests through a proxy server:
 
@@ -86,7 +86,7 @@ If you need to route your requests through a proxy server:
 4cget https://boards.4channel.org/w/thread/... --proxy http://proxyserver:port
 ```
 
-## Proxy Authentication
+#### Proxy Authentication
 
 If your proxy server requires authentication:
 
@@ -94,7 +94,7 @@ If your proxy server requires authentication:
 4cget https://boards.4channel.org/w/thread/... --proxy http://proxyserver:port --proxyuser username --proxypass password
 ```
 
-## Display Help Message
+#### Display Help Message
 
 Use the `--help` flag to display the help message with all available options:
 
@@ -102,25 +102,9 @@ Use the `--help` flag to display the help message with all available options:
 4cget --help
 ```
 
-## Full Example with Multiple Flags
+> [!NOTE]
+> All flags must be prefixed with `--`. For example, use `--monitor` instead of `-monitor`.
 
-Combine multiple options as needed:
-
-```shell
-4cget https://boards.4channel.org/w/thread/... --monitor 60 --sleep 2 --proxy http://proxyserver:port --proxyuser username --proxypass password 
-```
-
-*In this example, `4cget` will:*
-
-- *Check for new images every 60 seconds.*
-- *Add a 2-second delay between each download.*
-- *Use the specified proxy server with authentication.*
-
----
-
-### Note
-
-- **Flag Prefixes:** All flags must be prefixed with `--`. For example, use `--monitor` instead of `-monitor`.
 
 ## Download
 
