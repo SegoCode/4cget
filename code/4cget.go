@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"flag"
 	"fmt"
 	"io"
@@ -10,19 +11,20 @@ import (
 	"net/url"
 	"os"
 	"regexp"
-	"strconv"
 	"strings"
 	"sync"
 	"time"
 )
 
+const version = "1.7" // Current version
+
 var monitorMode bool
 
 // SiteInfo holds the URL pattern, regex for image extraction, and an ID.
 type SiteInfo struct {
-	ID     string
-	URL    string
-	ImgRE  *regexp.Regexp
+	ID    string
+	URL   string
+	ImgRE *regexp.Regexp
 }
 
 // Initialize the site info map with URL patterns and corresponding regex.
@@ -84,7 +86,13 @@ func downloadFile(wg *sync.WaitGroup, url string, fileName string, path string, 
 	}
 	defer resp.Body.Close()
 
-	if resp.StatusCode != 404 {
+	if resp.StatusCode == 429 {
+		fmt.Println("[!] Received HTTP 429 Too Many Requests. You are being rate-limited.")
+		fmt.Println("[!] Consider using the --sleep flag to add delays between downloads.")
+		return
+	}
+
+	if resp.StatusCode != 404 && resp.StatusCode == 200 {
 		filePath := path + "/" + fileName
 		if _, err := os.Stat(filePath); os.IsNotExist(err) || !monitorMode {
 			img, err := os.Create(filePath)
@@ -108,7 +116,78 @@ func downloadFile(wg *sync.WaitGroup, url string, fileName string, path string, 
 
 			fmt.Printf("File downloaded: %s - Size: %.2f %s\n", fileName, getSize, getSuffix)
 		}
+	} else {
+		fmt.Printf("[!] Received HTTP %d for %s\n", resp.StatusCode, url)
 	}
+}
+
+// checkForUpdates checks the latest release from GitHub and compares it with the current version.
+func checkForUpdates() (latestVersion string, updateAvailable bool) {
+	apiURL := "https://api.github.com/repos/SegoCode/4cget/releases/latest"
+	resp, err := http.Get(apiURL)
+	if err != nil {
+		fmt.Println("[!] Error checking for updates:", err)
+		return "", false
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != 200 {
+		fmt.Printf("[!] GitHub API returned status code %d\n", resp.StatusCode)
+		return "", false
+	}
+
+	var release struct {
+		TagName string `json:"tag_name"`
+	}
+	if err := json.NewDecoder(resp.Body).Decode(&release); err != nil {
+		fmt.Println("[!] Error decoding GitHub API response:", err)
+		return "", false
+	}
+
+	latestVersion = strings.TrimPrefix(release.TagName, "v")
+	if latestVersion != version {
+		return latestVersion, true
+	}
+	return latestVersion, false
+}
+
+// displayHelp shows the help message with explanations and examples.
+func displayHelp() {
+	fmt.Println(`
+4cget - A tool to download images from 4chan threads.
+
+Usage:
+  4cget [options] <thread_url>
+
+Options:
+  --help                 Display this help message.
+  --monitor <seconds>    Enable monitor mode with interval in seconds.
+                         The program will check for new images every specified interval.
+  --sleep <seconds>      Sleep duration in seconds between downloads.
+                         Useful to avoid getting rate-limited by the server.
+  --proxy <proxy_url>    Proxy URL (e.g., http://proxyserver:port).
+  --proxyuser <user>     Proxy username for authentication.
+  --proxypass <pass>     Proxy password for authentication.
+
+Examples:
+
+  Basic usage:
+    4cget https://boards.4chan.org/w/thread/123456
+
+  Enable monitor mode with a 60-second interval:
+    4cget --monitor 60 https://boards.4chan.org/w/thread/123456
+
+  Use a proxy with authentication:
+    4cget --proxy http://proxyserver:port --proxyuser username --proxypass password https://boards.4chan.org/w/thread/123456
+
+  Add delay between downloads to prevent rate-limiting:
+    4cget --sleep 2 https://boards.4chan.org/w/thread/123456
+
+Note:
+  - Ensure that all flags are prefixed with '--'.
+  - The thread URL must be a valid URL from a supported site.
+  - Use '--sleep' to add delays between downloads to avoid getting rate-limited (HTTP 429 errors).
+`)
 }
 
 func main() {
@@ -119,10 +198,12 @@ func main() {
 
 	// Define command-line flags
 	fs := flag.NewFlagSet(os.Args[0], flag.ExitOnError)
-	monitorModeFlag := fs.Bool("monitor", false, "Enable monitor mode")
-	intervalFlag := fs.Int("interval", 60, "Monitor interval in seconds")
+	helpFlag := fs.Bool("help", false, "Display this help message")
+	monitorIntervalFlag := fs.Int("monitor", 0, "Enable monitor mode with interval in seconds")
 	sleepFlag := fs.Int("sleep", 0, "Sleep duration in seconds between downloads")
 	proxyFlag := fs.String("proxy", "", "Proxy URL (e.g., http://proxyserver:port)")
+	proxyUserFlag := fs.String("proxyuser", "", "Proxy username")
+	proxyPassFlag := fs.String("proxypass", "", "Proxy password")
 
 	// Manually parse flags and positional arguments
 	var args []string
@@ -133,10 +214,14 @@ func main() {
 			args = append(args, os.Args[i+1:]...)
 			break
 		}
-		if strings.HasPrefix(arg, "-") {
+		if strings.HasPrefix(arg, "--") {
 			// Flag
 			fs.Parse(os.Args[i:])
 			break
+		}
+		if strings.HasPrefix(arg, "-") && !strings.HasPrefix(arg, "--") {
+			fmt.Printf("Invalid flag: %s. Flags must start with '--'.\n", arg)
+			os.Exit(1)
 		}
 		// Positional argument
 		args = append(args, arg)
@@ -145,15 +230,22 @@ func main() {
 	// After parsing flags, any remaining arguments are positional
 	args = append(args, fs.Args()...)
 
+	// If --help is provided, display help message and exit
+	if *helpFlag {
+		displayHelp()
+		return
+	}
+
 	// Input URL validation
 	if len(args) < 1 {
-		fmt.Println("[!] USAGE: 4cget [options] https://boards.4channel.org/w/thread/.../...")
-		fs.PrintDefaults()
+		fmt.Println("[!] USAGE: 4cget [options] <thread_url>")
+		fmt.Println("Use '--help' to see available options.")
 		os.Exit(1)
 	}
 	inputUrl = args[0]
-	monitorMode = *monitorModeFlag
-	secondsIteration := *intervalFlag
+
+	monitorMode = (*monitorIntervalFlag > 0)
+	secondsIteration := *monitorIntervalFlag
 	sleepDuration := *sleepFlag
 	proxyURL := *proxyFlag
 
@@ -189,6 +281,12 @@ func main() {
 ░░░░░╚═╝░╚════╝░░╚═════╝░╚══════╝░░░╚═╝░░░
                     [ github.com/SegoCode ]` + "\n")
 
+	// Check for updates before starting the download
+	latestVersion, updateAvailable := checkForUpdates()
+	if updateAvailable {
+		fmt.Printf("[*] UPDATE AVAILABLE %s [*]\n\n", latestVersion)
+	}
+
 	fmt.Println("[*] DOWNLOAD STARTED (" + inputUrl + ") [*]\n")
 	if monitorMode {
 		fmt.Println("[*] MONITOR MODE ENABLED [*]\n")
@@ -214,15 +312,18 @@ func main() {
 	os.MkdirAll(fmt.Sprintf("%s/%s/%s", actualPath, board, thread), os.ModePerm)
 	pathResult := fmt.Sprintf("%s/%s/%s", actualPath, board, thread)
 
-	fmt.Println("Folder created : " + actualPath + "...")
+	fmt.Println("Folder created : " + actualPath + "...\n")
 
-	// Setup HTTP client with optional proxy
+	// Setup HTTP client with optional proxy and authentication
 	client := &http.Client{}
 	if proxyURL != "" {
 		proxyParsed, err := url.Parse(proxyURL)
 		if err != nil {
 			fmt.Println("[!] Invalid proxy URL:", err)
 			os.Exit(1)
+		}
+		if *proxyUserFlag != "" {
+			proxyParsed.User = url.UserPassword(*proxyUserFlag, *proxyPassFlag)
 		}
 		client.Transport = &http.Transport{Proxy: http.ProxyURL(proxyParsed)}
 	}
