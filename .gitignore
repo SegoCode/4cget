@@ -264,3 +264,4 @@ $RECYCLE.BIN/
 *.lnk
 
 # End of https://www.toptal.com/developers/gitignore/api/git,gpg,ssh,vim,linux,macos,windows,notepadpp,sublimetext,intellij+all,visualstudiocode
+code/compile.bat
