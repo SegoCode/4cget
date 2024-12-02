@@ -1,0 +1,90 @@
+<div class="w-full max-w-4xl bg-gray-900/70 backdrop-blur-sm rounded-xl shadow-2xl overflow-hidden border border-gray-800 hover:border-gray-700 transition-colors duration-300">
+  <div class="flex items-center px-4 py-3 bg-gray-800/50 border-b border-gray-700">
+    <div class="flex space-x-2">
+      <div class="w-3 h-3 bg-red-500/80 rounded-full"></div>
+      <div class="w-3 h-3 bg-yellow-500/80 rounded-full"></div>
+      <div class="w-3 h-3 bg-green-500/80 rounded-full"></div>
+    </div>
+    <div class="ml-4 text-sm text-gray-400">terminal</div>
+  </div>
+  <div class="p-6 h-[32rem] overflow-y-auto font-mono text-sm bg-gradient-to-b from-gray-900/50 to-gray-900/30" id="console-output">
+    <pre id="ascii-art" class="text-purple-400 mb-2 text-xs leading-none hidden whitespace-pre">
+░░██╗██╗░█████╗░░██████╗░███████╗████████╗
+░██╔╝██║██╔══██╗██╔════╝░██╔════╝╚══██╔══╝
+██╔╝░██║██║░░╚═╝██║░░██╗░█████╗░░░░░██║░░░
+███████║██║░░██╗██║░░╚██╗██╔══╝░░░░░██║░░░
+╚════██║╚█████╔╝╚██████╔╝███████╗░░░██║░░░
+░░░░░╚═╝░╚════╝░░╚═════╝░╚══════╝░░░╚═╝░░░
+                    [ github.com/SegoCode ]</pre>
+    <div class="text-gray-300" id="typed-output"></div>
+  </div>
+</div>
+
+<script>
+  import Typed from 'typed.js';
+
+  const asciiArt = document.getElementById('ascii-art');
+  const typedOutput = document.getElementById('typed-output');
+
+  setTimeout(() => {
+    asciiArt.classList.remove('hidden');
+    asciiArt.classList.add('animate-fade-in');
+  }, 200);
+
+  const commands = [
+    { text: 'C:\\Users\\SegoCode&gt; 4cget https://boards.4chan.org/w/thread/2234123 --proxy http://proxy:8080', delay: 500 },
+    { text: '<br><br>[*] DOWNLOAD STARTED (https://boards.4chan.org/w/thread/2234123) [*]', delay: 200 },
+    { text: '<br><br>Folder created : C:\\Users\\SegoCode\\Downloads\\4chan-thread-2234123', delay: 100 },
+    { text: '<br>File downloaded: wallpaper-01.jpg - Size: 2.34 MB', delay: 50 },
+    { text: '<br>File downloaded: landscape-02.png - Size: 1.56 MB', delay: 50 },
+    { text: '<br>File downloaded: artwork-03.jpg - Size: 3.12 MB', delay: 50 },
+    { text: '<br>File downloaded: photo-04.png - Size: 945.2 KB', delay: 50 },
+    { text: '<br>File downloaded: image-05.jpg - Size: 1.78 MB', delay: 50 },
+    { text: '<br><br>✓ DOWNLOAD COMPLETE, 5 FILES IN 157.7ms', delay: 100 },
+    { text: '<br><br>C:\\Users\\SegoCode&gt; █', delay: 100 }
+  ];
+
+  let currentIndex = 0;
+  let typed = null;
+
+  function typeNextCommand() {
+    if (currentIndex < commands.length) {
+      const command = commands[currentIndex];
+
+      // Create a new element for each command
+      const newLine = document.createElement('div');
+      typedOutput.appendChild(newLine);
+
+      // Initialize Typed.js on the new element
+      typed = new Typed(newLine, {
+        strings: [command.text],
+        typeSpeed: 10,
+        showCursor: currentIndex === commands.length - 1,
+        cursorChar: '█',
+        contentType: 'html', // Allows HTML content like <br> tags
+        onComplete: () => {
+          currentIndex++;
+          setTimeout(typeNextCommand, command.delay);
+        }
+      });
+    }
+  }
+
+  setTimeout(typeNextCommand, 500);
+</script>
+
+<style>
+  @keyframes fade-in {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+
+  .animate-fade-in {
+    animation: fade-in 0.5s ease-in-out forwards;
+  }
+
+  /* Ensure line breaks are respected */
+  #typed-output {
+    white-space: pre-wrap;
+  }
+</style>
