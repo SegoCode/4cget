@@ -1,0 +1,21 @@
+---
+import Layout from '../layouts/Layout.astro';
+import Header from '../components/Header.astro';
+import Console from '../components/Console.astro';
+import Features from '../components/Features.astro';
+import Stats from '../components/Stats.astro';
+---
+
+<Layout title="Your CLI Tool">
+  <div class="fixed inset-0 bg-gradient-to-b from-gray-950 via-gray-900 to-gray-950">
+    <div class="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-purple-900/20 via-gray-900/0 to-transparent"></div>
+  </div>
+  
+  <main class="relative min-h-screen flex flex-col items-center justify-center p-4 overflow-hidden">
+    <div class="absolute top-0 left-1/2 -translate-x-1/2 w-full h-1/2 bg-gradient-to-b from-purple-500/5 via-transparent to-transparent blur-3xl"></div>
+    
+    <Header />
+    <Console />
+    <Features />
+  </main>
+</Layout>

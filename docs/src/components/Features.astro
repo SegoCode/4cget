@@ -1,0 +1,32 @@
+---
+const features = [
+  {
+    title: "Multi-Threaded",
+    description: "Lightning-fast with parallel downloads",
+    icon: "⚡"
+  },
+  {
+    title: "Zero Dependencies",
+    description: "Single executable written in raw Golang",
+    icon: "📦"
+  },
+  {
+    title: "Proxy Support",
+    description: "Configurable proxy settings with authentication support",
+    icon: "🔒"
+  }
+];
+---
+<div class="mt-12 grid grid-cols-1 md:grid-cols-3 gap-6 max-w-4xl w-full">
+  {features.map(feature => (
+    <div class="group p-6 bg-gray-900/50 backdrop-blur-sm rounded-xl border border-gray-800 hover:border-gray-700 transition-all duration-300 hover:shadow-lg hover:shadow-purple-500/5">
+      <div class="text-3xl mb-4">{feature.icon}</div>
+      <h3 class="text-xl font-semibold text-white mb-2 group-hover:text-purple-400 transition-colors">
+        {feature.title}
+      </h3>
+      <p class="text-gray-400">
+        {feature.description}
+      </p>
+    </div>
+  ))}
+</div>

@@ -14,13 +14,11 @@ Easy to use, simply and fast 4chan thread media downloader. Simple, easy and fun
 ## Features
 
 - Portable, single executable
-- Not affected by cloudflare
+- Configurable proxy
+- Customizable monitor mode and intervals
 - No dependences, no go mod
 
 ## Quick Start & Information
-
-> [!CAUTION]
-> Since 4cget is multithreaded, some CDN may detect it as a ddos attack and subsequent executions may not work as expected. [#4](https://github.com/SegoCode/4cget/issues/4)
 
 <details>
   <summary>Thread lifecycle and download process in concurrent image downloading. Click here to show it.</summary> 
@@ -47,15 +45,62 @@ Or better [donwload a binary](https://github.com/SegoCode/4cget/releases).
 
 ### Available Parameters
 
-One parameter, the url of the thread you want to download;
+`4cget` provides various parameters to customize its behavior. Below are detailed examples and explanations for each available option:
+
+#### Basic Usage
+
+Download all images from a thread:
+
 ```shell
 4cget https://boards.4channel.org/w/thread/...
 ```
-Or `monitor mode` and check for new files every specified seconds;
+
+#### Enable Monitor Mode
+
+Use the `--monitor` flag to enable monitor mode, which checks for new files every specified number of seconds:
+
 ```shell
-4cget https://boards.4channel.org/w/thread/... -monitor 10
+4cget https://boards.4channel.org/w/thread/... --monitor 10
 ```
-*In this example 4cget will check every 10 seconds.*
+
+*In this example, `4cget` will check every 10 seconds for new images.*
+
+####  Add Delay Between Downloads
+
+Use the `--sleep` flag to add a delay between downloads (useful to avoid rate-limiting):
+
+```shell
+4cget https://boards.4channel.org/w/thread/... --sleep 2
+```
+
+*This adds a 2-second delay between each download.*
+
+#### Use a Proxy Server
+
+If you need to route your requests through a proxy server:
+
+```shell
+4cget https://boards.4channel.org/w/thread/... --proxy http://proxyserver:port
+```
+
+#### Proxy Authentication
+
+If your proxy server requires authentication:
+
+```shell
+4cget https://boards.4channel.org/w/thread/... --proxy http://proxyserver:port --proxyuser username --proxypass password
+```
+
+#### Display Help Message
+
+Use the `--help` flag to display the help message with all available options:
+
+```shell
+4cget --help
+```
+
+> [!NOTE]
+> All flags must be prefixed with `--`. For example, use `--monitor` instead of `-monitor`.
 
 
 ## Download

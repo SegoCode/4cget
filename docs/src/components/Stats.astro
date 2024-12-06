@@ -1,0 +1,17 @@
+---
+const stats = [
+  { number: "", label: "Downloads" },
+  { number: "", label: "Satisfaction" },
+  { number: "", label: "Support" }
+];
+---
+<div class="w-full max-w-4xl mx-auto mt-16">
+  <div class="grid grid-cols-3 gap-8">
+    {stats.map(stat => (
+      <div class="text-center">
+        <div class="text-3xl font-bold text-white mb-1">{stat.number}</div>
+        <div class="text-gray-400">{stat.label}</div>
+      </div>
+    ))}
+  </div>
+</div>
