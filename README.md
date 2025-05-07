@@ -1,4 +1,4 @@
-⚠️ 07/05/2025 - doesn't work anymore. This repo is no longer maintained, 4chan enhanced its bot protection.
+###⚠️ 07/05/2025 - doesn't work anymore. This repo is no longer maintained, 4chan enhanced its bot protection.###
 
 # 4cget
 <img  src="https://raw.githubusercontent.com/SegoCode/4cget/main/media/demo1.3.gif">
