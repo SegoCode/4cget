@@ -134,7 +134,8 @@ func checkForUpdates() (latestVersion string, updateAvailable bool) {
 	}
 
 	apiURL := "https://api.github.com/repos/SegoCode/4cget/releases/latest"
-	resp, err := http.Get(apiURL)
+	client := &http.Client{Timeout: 10 * time.Second}
+	resp, err := client.Get(apiURL)
 	if err != nil {
 		return fail()
 	}
