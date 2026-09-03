@@ -20,9 +20,7 @@
 Easy to use, simply and fast 4chan thread media downloader. Simple, easy and functional.
 
 > [!NOTE]
-> We archived this repository on 2025-07-05 after Cloudflare raised bot scoring on `boards.4chan.org`. Cloudflare terminates the public HTML origin and scores each GET from IP reputation, ASN, TLS fingerprint, and User-Agent. A score above the challenge threshold returns interstitial HTML or 403 instead of the thread document. A score below it returns the post list. Clients fetch media from `i.4cdn.org`, a separate CDN with a lower bot threshold.
->
-> The score is computed per request. The same IP can fail and pass on consecutive fetches. We retested live threads against the board origin and the image CDN. Those fetches completed. We unarchived because the HTML interface is intact; access tracks Cloudflare's edge score.
+> We archived this repository in July 2025 when Cloudflare tightened bot detection on `boards.4chan.org`, where edge rules evaluate IP reputation, ASN, TLS fingerprinting, and User-Agent per request, returning an interstitial challenge or 403 instead of thread HTML if the threshold is exceeded, while `i.4cdn.org` serves media under much looser limits. Because scoring is dynamic, regular manual browsing on 4chan before running the tool can improve your IP reputation score enough to pass these checks. After verifying that both endpoints complete fetches normally and the underlying HTML interface remains unchanged, **we unarchived the project and resume the development** .
 
 ## Features
 
