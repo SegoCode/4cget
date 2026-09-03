@@ -11,6 +11,7 @@ import (
 	"net/url"
 	"os"
 	"regexp"
+	"strconv"
 	"strings"
 	"sync"
 	"time"
@@ -19,6 +20,7 @@ import (
 const version = "1.7" // Current version
 
 var monitorMode bool
+var cloudflareHintOnce sync.Once
 
 // SiteInfo holds the URL pattern, regex for image extraction, and an ID.
 type SiteInfo struct {
@@ -34,11 +36,6 @@ var siteInfoMap = map[string]SiteInfo{
 		URL:   "https://boards.4chan.org",
 		ImgRE: regexp.MustCompile(`<a[^>]+href="(//i\.4cdn\.org[^"]+)"`),
 	},
-	"twochen": {
-		ID:    "twochen",
-		URL:   "https://sturdychan.help/",
-		ImgRE: regexp.MustCompile(`(https?://[^/]+/assets/images/src/[a-zA-Z0-9]+\.(?:png|jpg))`),
-	},
 }
 
 // findImages extracts image URLs from the given HTML based on the site specified.
@@ -52,10 +49,7 @@ func findImages(html, siteID string) []string {
 
 	matches := siteInfo.ImgRE.FindAllStringSubmatch(html, -1)
 	for _, match := range matches {
-		url := match[1]
-		if siteID == siteInfoMap["4chan"].ID {
-			url = strings.Replace(url, "//i.4cdn.org", "https://i.4cdn.org", 1)
-		}
+		url := strings.Replace(match[1], "//i.4cdn.org", "https://i.4cdn.org", 1)
 		out = append(out, url)
 	}
 
@@ -76,6 +70,17 @@ func unique(input []string) []string {
 	return uniqueList
 }
 
+func printCloudflareHint(status int) {
+	cloudflareHintOnce.Do(func() {
+		fmt.Printf("[!] HTTP %d — Cloudflare is blocking this IP (low trust score).\n", status)
+		fmt.Println("[!] It is requiring a browser challenge. Open the thread in your browser,")
+		fmt.Println("[!] generate some traffic, then retry so the IP score can recover.")
+		if status == 429 {
+			fmt.Println("[!] Consider using the --sleep flag to add delays between downloads.")
+		}
+	})
+}
+
 func downloadFile(wg *sync.WaitGroup, url string, fileName string, path string, client *http.Client) {
 	defer wg.Done()
 
@@ -86,9 +91,8 @@ func downloadFile(wg *sync.WaitGroup, url string, fileName string, path string, 
 	}
 	defer resp.Body.Close()
 
-	if resp.StatusCode == 429 {
-		fmt.Println("[!] Received HTTP 429 Too Many Requests. You are being rate-limited.")
-		fmt.Println("[!] Consider using the --sleep flag to add delays between downloads.")
+	if resp.StatusCode == 403 || resp.StatusCode == 429 {
+		printCloudflareHint(resp.StatusCode)
 		return
 	}
 
@@ -123,37 +127,57 @@ func downloadFile(wg *sync.WaitGroup, url string, fileName string, path string, 
 
 // checkForUpdates checks the latest release from GitHub and compares it with the current version.
 func checkForUpdates() (latestVersion string, updateAvailable bool) {
+	fail := func() (string, bool) {
+		fmt.Println("[!] Error checking for updates: check manually at https://github.com/SegoCode/4cget/releases/latest")
+		return "", false
+	}
+
 	apiURL := "https://api.github.com/repos/SegoCode/4cget/releases/latest"
 	resp, err := http.Get(apiURL)
 	if err != nil {
-		fmt.Println("[!] Error checking for updates:", err)
-		return "", false
+		return fail()
 	}
 	defer resp.Body.Close()
 
 	if resp.StatusCode != 200 {
-		fmt.Printf("[!] GitHub API returned status code %d\n", resp.StatusCode)
-		return "", false
+		return fail()
 	}
 
 	var release struct {
 		TagName string `json:"tag_name"`
 	}
 	if err := json.NewDecoder(resp.Body).Decode(&release); err != nil {
-		fmt.Println("[!] Error decoding GitHub API response:", err)
-		return "", false
+		return fail()
 	}
 
 	latestVersion = strings.TrimPrefix(release.TagName, "v")
-	if latestVersion != version {
-		return latestVersion, true
+	latestParts := strings.Split(latestVersion, ".")
+	currentParts := strings.Split(version, ".")
+	for i := 0; i < len(latestParts) || i < len(currentParts); i++ {
+		var latestPart, currentPart int
+		var err error
+		if i < len(latestParts) {
+			latestPart, err = strconv.Atoi(latestParts[i])
+			if err != nil {
+				return fail()
+			}
+		}
+		if i < len(currentParts) {
+			currentPart, err = strconv.Atoi(currentParts[i])
+			if err != nil {
+				return fail()
+			}
+		}
+		if latestPart != currentPart {
+			return latestVersion, latestPart > currentPart
+		}
 	}
 	return latestVersion, false
 }
 
 // displayHelp shows the help message with explanations and examples.
 func displayHelp() {
-	fmt.Println(`
+	fmt.Print(`
 4cget - A tool to download images from 4chan threads.
 
 Usage:
@@ -165,10 +189,7 @@ Options:
                          The program will check for new images every specified interval.
   --sleep <seconds>      Sleep duration in seconds between downloads.
                          Useful to avoid getting rate-limited by the server.
-  --proxy <proxy_url>    Proxy URL (e.g., http://proxyserver:port).
-  --proxyuser <user>     Proxy username for authentication.
-  --proxypass <pass>     Proxy password for authentication.
-
+                         Cannot be combined with --monitor.
 Examples:
 
   Basic usage:
@@ -176,9 +197,6 @@ Examples:
 
   Enable monitor mode with a 60-second interval:
     4cget --monitor 60 https://boards.4chan.org/w/thread/123456
-
-  Use a proxy with authentication:
-    4cget --proxy http://proxyserver:port --proxyuser username --proxypass password https://boards.4chan.org/w/thread/123456
 
   Add delay between downloads to prevent rate-limiting:
     4cget --sleep 2 https://boards.4chan.org/w/thread/123456
@@ -201,9 +219,6 @@ func main() {
 	helpFlag := fs.Bool("help", false, "Display this help message")
 	monitorIntervalFlag := fs.Int("monitor", 0, "Enable monitor mode with interval in seconds")
 	sleepFlag := fs.Int("sleep", 0, "Sleep duration in seconds between downloads")
-	proxyFlag := fs.String("proxy", "", "Proxy URL (e.g., http://proxyserver:port)")
-	proxyUserFlag := fs.String("proxyuser", "", "Proxy username")
-	proxyPassFlag := fs.String("proxypass", "", "Proxy password")
 
 	// Manually parse flags and positional arguments
 	var args []string
@@ -247,7 +262,10 @@ func main() {
 	monitorMode = (*monitorIntervalFlag > 0)
 	secondsIteration := *monitorIntervalFlag
 	sleepDuration := *sleepFlag
-	proxyURL := *proxyFlag
+	if monitorMode && sleepDuration > 0 {
+		fmt.Println("[!] --monitor and --sleep cannot be used together.")
+		os.Exit(1)
+	}
 
 	parsedURL, errParse := url.ParseRequestURI(inputUrl)
 	if errParse != nil {
@@ -272,14 +290,14 @@ func main() {
 		os.Exit(1)
 	}
 
-	fmt.Println(`
+	fmt.Print(`
 ░░██╗██╗░█████╗░░██████╗░███████╗████████╗
 ░██╔╝██║██╔══██╗██╔════╝░██╔════╝╚══██╔══╝
 ██╔╝░██║██║░░╚═╝██║░░██╗░█████╗░░░░░██║░░░
 ███████║██║░░██╗██║░░╚██╗██╔══╝░░░░░██║░░░
 ╚════██║╚█████╔╝╚██████╔╝███████╗░░░██║░░░
 ░░░░░╚═╝░╚════╝░░╚═════╝░╚══════╝░░░╚═╝░░░
-                    [ github.com/SegoCode ]` + "\n")
+                    [ github.com/SegoCode ]` + "\n\n")
 
 	// Check for updates before starting the download
 	latestVersion, updateAvailable := checkForUpdates()
@@ -289,7 +307,7 @@ func main() {
 
 	fmt.Println("[*] DOWNLOAD STARTED (" + inputUrl + ") [*]\n")
 	if monitorMode {
-		fmt.Println("[*] MONITOR MODE ENABLED [*]\n")
+		fmt.Print("[*] MONITOR MODE ENABLED [*]\n\n")
 	}
 
 	start := time.Now()
@@ -299,12 +317,7 @@ func main() {
 	parts := strings.Split(inputUrl, "/")
 	board := parts[3]
 
-	// Handle the thread part depending on the site
-	if siteID == siteInfoMap["4chan"].ID {
-		thread = parts[5]
-	} else {
-		thread = parts[4]
-	}
+	thread = parts[5]
 
 	// Create necessary directories
 	actualPath, _ := os.Getwd()
@@ -314,19 +327,7 @@ func main() {
 
 	fmt.Println("Folder created : " + actualPath + "...\n")
 
-	// Setup HTTP client with optional proxy and authentication
 	client := &http.Client{}
-	if proxyURL != "" {
-		proxyParsed, err := url.Parse(proxyURL)
-		if err != nil {
-			fmt.Println("[!] Invalid proxy URL:", err)
-			os.Exit(1)
-		}
-		if *proxyUserFlag != "" {
-			proxyParsed.User = url.UserPassword(*proxyUserFlag, *proxyPassFlag)
-		}
-		client.Transport = &http.Transport{Proxy: http.ProxyURL(proxyParsed)}
-	}
 
 	for { // Main loop for monitorMode
 		resp, err := client.Get(inputUrl)
@@ -334,18 +335,32 @@ func main() {
 			fmt.Println("[!] Error fetching URL:", err)
 			os.Exit(1)
 		}
+		if resp.StatusCode == 403 || resp.StatusCode == 429 {
+			resp.Body.Close()
+			printCloudflareHint(resp.StatusCode)
+			os.Exit(1)
+		}
 		body, _ := ioutil.ReadAll(resp.Body)
 		resp.Body.Close()
 		imageURLs := findImages(string(body), siteID)
-		for _, each := range imageURLs {
+		for i, each := range imageURLs {
 			parts := strings.Split(each, "/")
 			nameImg := parts[len(parts)-1]
+			if monitorMode {
+				filePath := pathResult + "/" + nameImg
+				if _, err := os.Stat(filePath); err == nil {
+					continue
+				}
+			}
 			wg.Add(1)
-			go downloadFile(&wg, each, nameImg, pathResult, client)
+			if sleepDuration > 0 {
+				downloadFile(&wg, each, nameImg, pathResult, client)
+			} else {
+				go downloadFile(&wg, each, nameImg, pathResult, client)
+			}
 			files++
 
-			// Sleep between starting downloads if sleepDuration > 0
-			if sleepDuration > 0 {
+			if sleepDuration > 0 && i < len(imageURLs)-1 {
 				time.Sleep(time.Duration(sleepDuration) * time.Second)
 			}
 		}
@@ -353,7 +368,7 @@ func main() {
 		if !monitorMode {
 			break // Exit main loop
 		} else {
-			for i := secondsIteration; i >= 0; i-- {
+			for i := secondsIteration; i > 0; i-- {
 				fmt.Printf("Press Ctrl+C to close 4cget\n")
 				fmt.Printf("Checking for new files in %v seconds....\n", i)
 				time.Sleep(1 * time.Second)
