@@ -9,8 +9,8 @@ jobs:
       issues: write
       pull-requests: write
     steps:
-    - uses: actions/first-interaction@v1
+    - uses: actions/first-interaction@v3.1.0
       with:
-        repo-token: ${{ secrets.GITHUB_TOKEN }}
-        issue-message: "Thank you for your first issue. To better understand your request or the problem you've encountered, please provide as many details as possible. If the behavior changes or if you have new information about your request, don't hesitate to add it. It will be reviewed ASAP."
-        pr-message: "Thank you for your first pull request to the repository! We're grateful for your contribution and will review it ASAP."
+        repo_token: ${{ secrets.GITHUB_TOKEN }}
+        issue_message: "Thank you for your first issue. To better understand your request or the problem you've encountered, please provide as many details as possible. If the behavior changes or if you have new information about your request, don't hesitate to add it. It will be reviewed ASAP."
+        pr_message: "Thank you for your first pull request to the repository! We're grateful for your contribution and will review it ASAP."
