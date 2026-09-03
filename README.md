@@ -14,7 +14,7 @@
 [![Repository size](https://img.shields.io/github/repo-size/SegoCode/4cget?style=flat-square&label=repo%20size)](https://github.com/SegoCode/4cget)
 [![Commit activity per year](https://img.shields.io/github/commit-activity/y/SegoCode/4cget?style=flat-square&label=commits)](https://github.com/SegoCode/4cget/graphs/commit-activity)
 [![GitHub downloads](https://img.shields.io/github/downloads/SegoCode/4cget/total?style=flat-square&label=downloads)](https://github.com/SegoCode/4cget/releases)
-[![Licencia: PolyForm Noncommercial + GNU AGPL-3.0](https://img.shields.io/badge/License-PolyForm%20Noncommercial%20%2B%20GNU%20AGPL--3.0-blue?style=flat-square)](https://github.com/SegoCode/4cget/blob/main/LICENSE)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue?style=flat-square)](https://github.com/SegoCode/4cget/blob/main/LICENSE)
 [![Bitcoin BTC](https://img.shields.io/badge/buy_me_a_coffee-BTC-F7931A?style=flat-square&logo=bitcoin&logoColor=white)](https://github.com/SegoCode/SegoCode/discussions/2)
 
 Easy to use, simply and fast 4chan thread media downloader. Simple, easy and functional.
