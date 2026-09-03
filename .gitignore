@@ -1,5 +1,12 @@
-# Created by https://www.toptal.com/developers/gitignore/api/git,gpg,ssh,vim,linux,macos,windows,notepadpp,sublimetext,intellij+all,visualstudiocode
-# Edit at https://www.toptal.com/developers/gitignore?templates=git,gpg,ssh,vim,linux,macos,windows,notepadpp,sublimetext,intellij+all,visualstudiocode
+### Custom ###
+
+code/.idea/*
+
+# Created by https://www.toptal.com/developers/gitignore/api/git,gpg,ssh,vim,linux,macos,windows,notepadpp,sublimetext,intellij+all,visualstudiocode,dotenv
+# Edit at https://www.toptal.com/developers/gitignore?templates=git,gpg,ssh,vim,linux,macos,windows,notepadpp,sublimetext,intellij+all,visualstudiocode,dotenv
+
+### dotenv ###
+.env
 
 ### Git ###
 # Created by git for backups. To disable backups in Git:
@@ -263,5 +270,4 @@ $RECYCLE.BIN/
 # Windows shortcuts
 *.lnk
 
-# End of https://www.toptal.com/developers/gitignore/api/git,gpg,ssh,vim,linux,macos,windows,notepadpp,sublimetext,intellij+all,visualstudiocode
-code/compile.bat
+# End of https://www.toptal.com/developers/gitignore/api/git,gpg,ssh,vim,linux,macos,windows,notepadpp,sublimetext,intellij+all,visualstudiocode,dotenv
