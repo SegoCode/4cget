@@ -137,6 +137,11 @@ jobs:
           mkdir -p ../dist
           go build -trimpath -ldflags="-s -w -X main.version=$RELEASE_VERSION" -o "../dist/${{ matrix.asset }}" .
 
+      - name: Verify embedded version
+        env:
+          RELEASE_VERSION: ${{ needs.prepare.outputs.version }}
+        run: strings -n 3 "dist/${{ matrix.asset }}" | grep -Fx "$RELEASE_VERSION"
+
       - name: Upload binary
         uses: actions/upload-artifact@v4
         with:
@@ -190,4 +195,6 @@ jobs:
             --repo "$GITHUB_REPOSITORY" \
             --target "$RELEASE_COMMIT" \
             --title "4cget $RELEASE_VERSION" \
-            --generate-notes
+            --generate-notes \
+            --fail-on-no-commits \
+            --latest
