@@ -1,75 +1,227 @@
-Copyright (c) SegoCode
-All rights reserved.
+# Source Available PolyForm Noncommercial + GNU AGPL-3.0 License
 
-Section 1 - Definitions
+<https://github.com/{username}/{reponame}/blob/main/LICENSE>
 
-1.1 "NonCommercial" pertains to any use, distribution, or modification of the 
-	licensed material that does not primarily aim to achieve commercial 
-	advantage or generate monetary compensation. This includes, but is not 
-	limited to, activities such as distributing the licensed material as part 
-	of an application or product that is sold, using the licensed material in 
-	advertising, and creating products or services with the licensed material 
-	that are subsequently sold.
+## Acceptance
 
-1.2 "Adapted Material" refers to any work derived from or based upon the licensed
-	material. This includes, but is not limited to, translations, alterations, 
-	rearrangements, transformations, source code modifications, compiled code
-	alterations, architectural redesigns, or the integration of the licensed
-	material into other software projects.
+In order to get any license under these terms, you must agree
+to them as both strict obligations and conditions to all
+your licenses.
 
-1.3 "NonAdapted Material" refers to exact copies of the licensed material, either 
-	in source code or binary form, which are reproduced without any changes, 
-	modifications, or transformations.
+## Copyright License
 
-Section 2 - License Conditions
+The licensor grants you a copyright license for the
+software to do everything you might do with the software
+that would otherwise infringe the licensor's copyright
+in it for any permitted purpose. However, you may
+only distribute the software according to [Distribution
+License](#distribution-license) and make changes or new works
+based on the software according to [Changes and New Works
+License](#changes-and-new-works-license), subject to
+[Source Availability Obligations](#source-availability-obligations).
 
-2.1 Distribution and usage in source or binary forms are permitted solely for
-	NonCommercial purposes for both NonAdapted Material and Adapted Material
-	excluding NonAdapted Material cases in 2.4 section.
-	
-2.2 Redistributions for any NonAdapted Material or Adapted Material, either 
-        in source code or binary form, must include the original copyright notice, 
-        this license, the disclaimer, and comply with the requirements specified 
-        herein. For binary form redistributions, these documents must be included 
-        in any provided documentation or materials or a clearly accessible link 
-        to this license ensuring that recipients can easily review the license terms.
+## Distribution License
 
-2.3 For any Adapted Material, whether in source code or binary form, and for any 
-	instance of the licensed material utilized in applications accessible over
-	the internet that run on a server, the source code must be made accessible
-	through a public repository, a downloadable archive, or an equivalent 
-	method, ensuring that users have the capability to access, review, and 
-	download the code, and must clearly credit the original work and author. 
+The licensor grants you an additional copyright license
+to distribute copies of the software. Your license
+to distribute covers distributing the software with
+changes and new works permitted by [Changes and New Works
+License](#changes-and-new-works-license), subject to
+[Source Availability Obligations](#source-availability-obligations).
 
-2.4 For any NonAdapted Material that are offered on download sites, marketplaces, or
-	software distribution platforms, are permitted under the condition that any 
-	economic benefit derived from such distribution is strictly indirect, including 
-	but not limited to advertisements or link redirectors. Direct sales or charges 
-	for access to the licensed material are not permitted under this license. Upon 
-	the original author distributing the material on the same platform, all alternative
-	downloads and any associated revenue-generating mechanisms must be discontinued 
-	immediately. Acceptance of this license constitutes agreement that the copyright
-	holder may request the immediate cessation of such downloads and activities on 
-	such platforms, and the distributor must comply with such request without delay.
+## Notices
 
-2.5 Distributing the licensed material alongside unrelated or harmful software, such as adware, 
-	malware, or spyware or implying endorsement or association with the original author 
-	or recognized entities without permission, is prohibited.
+You must ensure that anyone who gets a copy of any part of
+the software from you also gets a copy of these terms or the
+URL for them above, as well as copies of any plain-text lines
+beginning with `Required Notice:` that the licensor provided
+with the software. For example:
 
-Section 3 - Updates and Revisions
+> Required Notice: Copyright [{username}] ([https://github.com/{username}/{reponame}])
 
-3.1 The copyright holder retains the right to amend, update, or otherwise modify this
-	license at any time without prior notice. Users should periodically review the
-	license terms to stay informed of any changes.
+## Changes and New Works License
 
-3.2 Continued use of the licensed material after such changes signifies acceptance of the 
-	revised license terms. It is the user's responsibility to ensure ongoing compliance 
-	with the most current version of the license.
+The licensor grants you an additional copyright license to
+make changes and new works based on the software for any
+permitted purpose, subject to
+[Source Availability Obligations](#source-availability-obligations).
 
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
+## Patent License
+
+The licensor grants you a patent license for the software that
+covers patent claims the licensor can license, or becomes able
+to license, that you would infringe by using the software.
+
+## Noncommercial Purposes
+
+Any noncommercial purpose is a permitted purpose.
+
+## Personal Uses
+
+Personal use for research, experiment, and testing for
+the benefit of public knowledge, personal study, private
+entertainment, hobby projects, amateur pursuits, or religious
+observance, without any anticipated commercial application,
+is use for a permitted purpose.
+
+## Noncommercial Organizations
+
+Use by any charitable organization, educational institution,
+public research organization, public safety or health
+organization, environmental protection organization,
+or government institution is use for a permitted purpose
+regardless of the source of funding or obligations resulting
+from the funding.
+
+## Fair Use
+
+You may have "fair use" rights for the software under the
+law. These terms do not limit them.
+
+## No Other Rights
+
+These terms do not allow you to sublicense or transfer any of
+your licenses to anyone else, or prevent the licensor from
+granting licenses to anyone else. These terms do not imply
+any other licenses.
+
+## Patent Defense
+
+If you make any written claim that the software infringes or
+contributes to infringement of any patent, your patent license
+for the software granted under these terms ends immediately. If
+your company makes such a claim, your patent license ends
+immediately for work on behalf of your company.
+
+## Source Availability Obligations
+
+These obligations apply in addition to all other terms of this
+license and are conditions of every license granted hereunder.
+
+### Definitions
+
+“Source Code” means the preferred form of the work for making
+modifications to it.
+
+“Object Code” means any non-source form of a work.
+
+“Corresponding Source” means all the Source Code needed to
+generate, install, and (for an executable work) run the Object
+Code and to modify the work, including scripts to control those
+activities. However, it does not include the work’s System
+Libraries, or general-purpose tools or generally available free
+programs which are used unmodified in performing those activities
+but which are not part of the work. The Corresponding Source for
+a work in Source Code form is that same work.
+
+“Convey” means any kind of propagation that enables other parties
+to make or receive copies. Mere interaction with a user through a
+computer network, with no transfer of a copy, is not conveying.
+
+“Make Available as a Network Service” means enabling third parties
+to interact with the functionality of the software or a modified
+version remotely through a computer network, or offering a service
+whose value entirely or primarily derives from the software or a
+modified version, or that accomplishes for users the primary purpose
+of the software or a modified version.
+
+### Obligation when Conveying
+
+If you Convey the software or any modified version (whether in
+Source Code or Object Code form), you must:
+
+- license the entire work, as a whole, under these terms to anyone
+  who comes into possession of a copy;
+- provide the Corresponding Source of the work under these same
+  terms, either accompanying the Object Code on a durable physical
+  medium customarily used for software interchange, or offering
+  equivalent access to the Corresponding Source from a network
+  server at no charge, with clear directions next to the Object
+  Code stating where to find it, and keeping that access available
+  for as long as needed to satisfy these requirements; and
+- ensure that any interactive user interfaces display Appropriate
+  Legal Notices (copyright notice, absence of warranty, and how to
+  view a copy of these terms).
+
+### Obligation for Network Interaction and Services
+
+If you modify the software and Make Available as a Network Service
+a version that supports remote interaction, or if you Make Available
+as a Network Service the software or any modified version, you must
+prominently offer all users interacting with it remotely an
+opportunity to receive the Corresponding Source of your version by
+providing access to that Corresponding Source from a network server
+at no charge, through some standard or customary means of
+facilitating copying of software. This obligation applies even if
+you do not Convey copies.
+
+### Same License and Notices
+
+Any Corresponding Source you provide under these obligations must
+itself be licensed under these terms and must include all Required
+Notices and a copy of (or URL to) these terms.
+
+## Limited Control over Third-Party Hosting
+
+The licensor may at any time, by any reasonable means (including
+direct notification to the third-party site, public announcement on
+the licensor’s website, repository, social media, or any other public
+communication), make known that distribution of the software or any
+modified version on a particular third-party website, platform,
+repository, mirror, or download service is not authorized under these
+terms.
+
+Once the licensor has made such communication in a manner reasonably
+capable of coming to the attention of the public or of the operators
+of the site, any person who has uploaded, instructed the upload of,
+hosts, or continues to distribute the software or a modified version
+on that site must promptly cease the distribution and remove all
+copies under their control.
+
+Failure to cease distribution and remove the copies after the
+licensor’s communication has become reasonably known constitutes a
+violation of these terms.
+
+This obligation applies only to copies that the person controls or
+that they caused to be placed on the site. It does not impose liability
+for actions of independent third parties beyond the person’s control.
+
+## Violations
+
+The first time you are notified in writing that you have
+violated any of these terms, or done anything with the software
+not covered by your licenses, your licenses can nonetheless
+continue if you come into full compliance with these terms,
+and take practical steps to correct past violations, within
+32 days of receiving notice. Otherwise, all your licenses
+end immediately.
+
+## No Liability
+
+***As far as the law allows, the software comes as is, without
+any warranty or condition, and the licensor will not be liable
+to you for any damages arising out of these terms or the use
+or nature of the software, under any kind of legal claim.***
+
+## Definitions
+
+The **licensor** is the individual or entity offering these
+terms, and the **software** is the software the licensor makes
+available under these terms.
+
+**You** refers to the individual or entity agreeing to these
+terms.
+
+**Your company** is any legal entity, sole proprietorship,
+or other kind of organization that you work for, plus all
+organizations that have control over, are under the control of,
+or are under common control with that organization. **Control**
+means ownership of substantially all the assets of an entity,
+or the power to direct its management and policies by vote,
+contract, or otherwise. Control can be direct or indirect.
+
+**Your licenses** are all the licenses granted to you for the
+software under these terms.
+
+**Use** means anything you do with the software requiring one
+of your licenses.
