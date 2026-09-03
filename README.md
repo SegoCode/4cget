@@ -28,17 +28,18 @@ Easy to use, simply and fast 4chan thread media downloader. Simple, easy and fun
 
 - Portable, single executable
 - Customizable monitor mode and intervals
-- No dependences, no go mod
+- Configurable output root
+- Standard library only
 
 ## Quick Start & Information
 
-4cget downloads the files organized by boards and threads.
+4cget organizes downloaded files by board and thread. By default, it creates this structure in the current directory:
 
 ```shell
-root
-  └───board
-      └───thread
-            └───files
+current-directory/
+└── board/
+    └── thread/
+        └── files
 ```
 
 run from source code (Golang installation required).
@@ -82,6 +83,31 @@ Use the `--sleep` flag to add a delay between downloads (useful to avoid rate-li
 
 *This adds a 2-second delay between each download.*
 
+#### Select the Output Folder
+
+Use `--o <folder>` to set the root of the download structure. 4cget accepts relative and absolute paths, creates missing directories, and keeps the `board/thread` hierarchy below the selected root.
+
+```shell
+4cget https://boards.4chan.org/w/thread/... --o ./downloads
+4cget --o /media/4chan https://boards.4chan.org/w/thread/...
+```
+
+`--o` can appear before or after the thread URL and can be combined with `--sleep` or `--monitor`:
+
+```shell
+4cget --sleep 2 https://boards.4chan.org/w/thread/... --o ./downloads
+4cget --o ./downloads --monitor 60 https://boards.4chan.org/w/thread/...
+```
+
+The first command creates:
+
+```shell
+downloads/
+└── w/
+    └── thread-id/
+        └── files
+```
+
 #### Display Help Message
 
 Use the `--help` flag to display the help message with all available options:
@@ -90,8 +116,18 @@ Use the `--help` flag to display the help message with all available options:
 4cget --help
 ```
 
+#### Display Version
+
+Use `--version` to print the installed version without making network requests:
+
+```shell
+4cget --version
+```
+
+Release binaries print their release tag, for example `4cget 1.7`. Local builds use `4cget 0.0` unless the build injects a version through Go linker flags.
+
 > [!NOTE]
-> All flags must be prefixed with `--`. For example, use `--monitor` instead of `-monitor`.
+> All flags use the `--` prefix. For example, use `--o` instead of `-o`. `--monitor` and `--sleep` cannot be combined.
 
 
 ## Download
