@@ -1,0 +1,68 @@
+name: Sync from develop to main
+
+on:
+  workflow_dispatch:
+    inputs:
+      release:
+        description: Version to publish when the pull request is merged
+        required: true
+        default: minor
+        type: choice
+        options:
+          - minor
+          - major
+          - none
+
+concurrency:
+  group: promote-develop-to-main
+
+jobs:
+  create_pr:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+      issues: write
+    steps:
+      - name: Check and create labels
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh label create auto-sync --repo "${{ github.repository }}" --color C5DEF5 --force
+          gh label create auto-tag --repo "${{ github.repository }}" --color BFDADC --force
+          gh label create semver:major --repo "${{ github.repository }}" --color B60205 --force
+
+      - name: Replace pull request
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          PR_BODY="> [!WARNING]
+          > This is an automated pull request to sync changes from the \`develop\` branch to the \`main\` branch.
+          > If this pull request is merged with the **auto-tag** label, it will create a **new tag**.
+          > To prevent this, manually remove the **auto-tag** label."
+
+          gh pr list --repo "${{ github.repository }}" --base main --head develop --state open \
+            --json number --jq '.[].number' | while read -r PR_NUMBER; do
+              gh pr close "$PR_NUMBER" --repo "${{ github.repository }}"
+            done
+
+          PR_NUMBER=$(gh pr create --repo "${{ github.repository }}" --base main --head develop \
+            --title "chore: promote develop to main" \
+            --body "$PR_BODY" | sed 's#.*/##')
+
+          gh pr edit "$PR_NUMBER" --repo "${{ github.repository }}" --add-label auto-sync
+          case "${{ inputs.release }}" in
+            major)
+              gh pr edit "$PR_NUMBER" --repo "${{ github.repository }}" --add-label auto-tag --add-label semver:major
+              ;;
+            minor)
+              gh pr edit "$PR_NUMBER" --repo "${{ github.repository }}" --remove-label semver:major 2>/dev/null || true
+              gh pr edit "$PR_NUMBER" --repo "${{ github.repository }}" --add-label auto-tag
+              ;;
+            none)
+              gh pr edit "$PR_NUMBER" --repo "${{ github.repository }}" --remove-label auto-tag 2>/dev/null || true
+              gh pr edit "$PR_NUMBER" --repo "${{ github.repository }}" --remove-label semver:major 2>/dev/null || true
+              ;;
+          esac
+
+          gh pr view "$PR_NUMBER" --repo "${{ github.repository }}" --json url --jq .url
