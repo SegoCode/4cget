@@ -10,6 +10,7 @@ import (
 	"net/http"
 	"net/url"
 	"os"
+	"path/filepath"
 	"regexp"
 	"strconv"
 	"strings"
@@ -17,7 +18,7 @@ import (
 	"time"
 )
 
-const version = "1.7" // Current version
+var version = "0.0"
 
 var monitorMode bool
 var cloudflareHintOnce sync.Once
@@ -97,7 +98,7 @@ func downloadFile(wg *sync.WaitGroup, url string, fileName string, path string, 
 	}
 
 	if resp.StatusCode != 404 && resp.StatusCode == 200 {
-		filePath := path + "/" + fileName
+		filePath := filepath.Join(path, fileName)
 		if _, err := os.Stat(filePath); os.IsNotExist(err) || !monitorMode {
 			img, err := os.Create(filePath)
 			if err != nil {
@@ -185,11 +186,14 @@ Usage:
 
 Options:
   --help                 Display this help message.
+  --version              Display the installed version.
   --monitor <seconds>    Enable monitor mode with interval in seconds.
                          The program will check for new images every specified interval.
   --sleep <seconds>      Sleep duration in seconds between downloads.
                          Useful to avoid getting rate-limited by the server.
                          Cannot be combined with --monitor.
+  --o <folder>           Root folder for the board/thread download structure.
+
 Examples:
 
   Basic usage:
@@ -201,8 +205,15 @@ Examples:
   Add delay between downloads to prevent rate-limiting:
     4cget --sleep 2 https://boards.4chan.org/w/thread/123456
 
+  Select the output root:
+    4cget https://boards.4chan.org/w/thread/123456 --o ./downloads
+
+  Combine output with monitor mode:
+    4cget --o ./downloads --monitor 60 https://boards.4chan.org/w/thread/123456
+
 Note:
   - Ensure that all flags are prefixed with '--'.
+  - Flags can appear before or after the thread URL.
   - The thread URL must be a valid URL from a supported site.
   - Use '--sleep' to add delays between downloads to avoid getting rate-limited (HTTP 429 errors).
 `)
@@ -213,37 +224,53 @@ func main() {
 	var inputUrl string
 	var thread string
 	var siteID string
+	for _, arg := range os.Args[1:] {
+		if arg == "--version" || arg == "--version=true" {
+			fmt.Printf("4cget %s\n", version)
+			return
+		}
+	}
 
 	// Define command-line flags
 	fs := flag.NewFlagSet(os.Args[0], flag.ExitOnError)
 	helpFlag := fs.Bool("help", false, "Display this help message")
+	versionFlag := fs.Bool("version", false, "Display the installed version")
 	monitorIntervalFlag := fs.Int("monitor", 0, "Enable monitor mode with interval in seconds")
 	sleepFlag := fs.Int("sleep", 0, "Sleep duration in seconds between downloads")
+	outputFlag := fs.String("o", ".", "Root output folder")
 
-	// Manually parse flags and positional arguments
+	// Collect flags separately so they can appear before or after the thread URL.
+	var flagArgs []string
 	var args []string
 	for i := 1; i < len(os.Args); i++ {
 		arg := os.Args[i]
 		if arg == "--" {
-			// All remaining args are positional
 			args = append(args, os.Args[i+1:]...)
 			break
 		}
 		if strings.HasPrefix(arg, "--") {
-			// Flag
-			fs.Parse(os.Args[i:])
-			break
+			flagArgs = append(flagArgs, arg)
+			if arg != "--help" && arg != "--version" && !strings.Contains(arg, "=") {
+				if i+1 >= len(os.Args) {
+					fmt.Printf("Flag %s requires a value.\n", arg)
+					os.Exit(1)
+				}
+				i++
+				flagArgs = append(flagArgs, os.Args[i])
+			}
+			continue
 		}
 		if strings.HasPrefix(arg, "-") && !strings.HasPrefix(arg, "--") {
 			fmt.Printf("Invalid flag: %s. Flags must start with '--'.\n", arg)
 			os.Exit(1)
 		}
-		// Positional argument
 		args = append(args, arg)
 	}
-
-	// After parsing flags, any remaining arguments are positional
-	args = append(args, fs.Args()...)
+	fs.Parse(flagArgs)
+	if *versionFlag {
+		fmt.Printf("4cget %s\n", version)
+		return
+	}
 
 	// If --help is provided, display help message and exit
 	if *helpFlag {
@@ -319,11 +346,17 @@ func main() {
 
 	thread = parts[5]
 
-	// Create necessary directories
-	actualPath, _ := os.Getwd()
-	os.MkdirAll(fmt.Sprintf("%s/%s", actualPath, board), os.ModePerm)
-	os.MkdirAll(fmt.Sprintf("%s/%s/%s", actualPath, board, thread), os.ModePerm)
-	pathResult := fmt.Sprintf("%s/%s/%s", actualPath, board, thread)
+	// Create the board/thread structure under the selected output root.
+	actualPath, err := filepath.Abs(*outputFlag)
+	if err != nil {
+		fmt.Println("[!] Invalid output folder:", err)
+		os.Exit(1)
+	}
+	pathResult := filepath.Join(actualPath, board, thread)
+	if err := os.MkdirAll(pathResult, os.ModePerm); err != nil {
+		fmt.Println("[!] Error creating output folder:", err)
+		os.Exit(1)
+	}
 
 	fmt.Println("Folder created : " + actualPath + "...\n")
 
@@ -347,7 +380,7 @@ func main() {
 			parts := strings.Split(each, "/")
 			nameImg := parts[len(parts)-1]
 			if monitorMode {
-				filePath := pathResult + "/" + nameImg
+				filePath := filepath.Join(pathResult, nameImg)
 				if _, err := os.Stat(filePath); err == nil {
 					continue
 				}
