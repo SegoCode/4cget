@@ -20,7 +20,9 @@
 Easy to use, simply and fast 4chan thread media downloader. Simple, easy and functional.
 
 > [!NOTE]
-> We archived this repository in July 2025 when Cloudflare increase bot detection on `boards.4chan.org` and `i.4cdn.org` returning an challenge or 403 instead of thread. Because scoring is dynamic, regular manual browsing on 4chan before running the tool can improve your IP reputation score enough to pass these checks. After verifying that both endpoints complete fetches normally and the underlying HTML interface remains unchanged, **we unarchived the project and resume the development**.
+> I archived this repository in July 2025, when Cloudflare was deployed on boards.4chan.org and i.4cdn.org returning a challenge message instead of the thread. I didn’t have time to investigate how Cloudflare challenge works... but now I’ve seen that it works reliably with dynamic IPs.... Manually browsing 4chan regularly before running the tool can improve your IP reputation enough to avoid triggering the challenge. After testing it several times, I’m unarchived the project and resuming development.
+
+Translated with DeepL.com (free version)
 
 ## Features
 
