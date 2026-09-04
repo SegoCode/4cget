@@ -134,9 +134,9 @@ Release binaries print their release tag, for example `4cget 1.7`. Local builds 
 
 Latest binaries:
 
-- [Windows x64](https://github.com/SegoCode/4cget/releases/latest/download/4cget-windows-amd64.exe)
-- [macOS Apple Silicon](https://github.com/SegoCode/4cget/releases/latest/download/4cget-darwin-arm64)
-- [Linux x64](https://github.com/SegoCode/4cget/releases/latest/download/4cget-linux-amd64)
+- Windows x64 https://github.com/SegoCode/4cget/releases/latest/download/4cget-windows-amd64.exe
+- macOS Apple Silicon https://github.com/SegoCode/4cget/releases/latest/download/4cget-darwin-arm64
+- Linux x64 https://github.com/SegoCode/4cget/releases/latest/download/4cget-linux-amd64
 
 All platforms: https://github.com/SegoCode/4cget/releases/latest
 
